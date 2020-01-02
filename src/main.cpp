@@ -240,8 +240,7 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };    
 
-    Model myModel{"Models/nanosuit/nanosuit.obj"};
-    std::cout << "No Error loading Model" << std::endl;
+    Model myModel{"Models/HELLSCAPEXPORTTESTSNAKEY.FBX"};
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
