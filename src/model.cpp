@@ -15,7 +15,6 @@ Model::Model(std::string path)
     directory_ = path.substr(0, path.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
-    
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)

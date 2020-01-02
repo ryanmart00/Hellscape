@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "camera.hpp"
 #include "shader.hpp"
+#include "model.hpp"
 
 using namespace std;
 
@@ -239,7 +240,8 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };    
 
-    glm::vec3 lampPos{0.8f, 1.0f, -5.0f};
+    Model myModel{"Models/nanosuit/nanosuit.obj"};
+    std::cout << "No Error loading Model" << std::endl;
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
@@ -268,9 +270,7 @@ int main()
 
 		//Draw
         shader.use();
-//        shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-//        shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-
+		
 		//projection: generates frustum	
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
 			((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 100.0f); 
@@ -280,6 +280,10 @@ int main()
 		shader.setMat4("view", view);
         shader.setVec3("viewPos", cam->position_);
 
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+        shader.setMat4("model", model);
+        myModel.Draw(shader);
 
 		
         glActiveTexture(GL_TEXTURE0);
