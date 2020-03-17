@@ -20,7 +20,9 @@ public:
     Model() = delete;
     Model(std::string path);
     
-    void Draw(Shader shader);
+    void Draw(Shader& shader);
+
+    friend std::ostream& operator<<(std::ostream& os, const Model& m);
 
 private:
     
@@ -34,5 +36,7 @@ private:
         std::string typeName);
 
 };
+
+std::ostream& operator<<(std::ostream& os, const Model& m);
 
 #endif

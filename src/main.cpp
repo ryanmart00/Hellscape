@@ -11,6 +11,11 @@
 #include "camera.hpp"
 #include "shader.hpp"
 #include "model.hpp"
+#include <vector>
+
+#include <btBulletCollisionCommon.h>
+#include <btBulletDynamicsCommon.h>
+#include "debug_drawer.hpp"
 
 using namespace std;
 
@@ -25,8 +30,72 @@ const unsigned int SCR_HEIGHT = 600;
 
 Camera* cam;
 
+btDynamicsWorld* world;
+btDispatcher* dispatcher;
+btBroadphaseInterface* broadphase;
+btConstraintSolver* solver;
+btCollisionConfiguration* collisionConfig;
+
+std::vector<btRigidBody*> bodies;
+
+btRigidBody* addBox(btVector3 dim, float x, float y, float z, float mass)
+{
+    btTransform trans;
+    trans.setIdentity();
+    trans.setOrigin(btVector3(x,y,z));
+    btBoxShape* box = new btBoxShape(dim);
+    btVector3 inertia(0,0,0);
+    box->calculateLocalInertia(mass, inertia);
+    btMotionState* motion = new btDefaultMotionState(trans);
+    btRigidBody::btRigidBodyConstructionInfo info{mass, motion, box, inertia};
+    btRigidBody* body = new btRigidBody(info);
+    world->addRigidBody(body);
+
+    bodies.push_back(body);
+    return body;
+}
+
+void renderBox(btRigidBody* box, Shader& shader)
+{
+    if(box->getCollisionShape()->getShapeType() != BOX_SHAPE_PROXYTYPE)
+    {
+        return;
+    }  
+    Model cube{"Models/cube/cube.obj"};
+    btTransform t;
+    box->getMotionState()->getWorldTransform(t);
+    float mat[16];
+    t.getOpenGLMatrix(mat);
+    shader.setMat4("model", glm::make_mat4(mat));
+    cube.Draw(shader);
+}
+
 int main()
 {
+    //Initialize Bullet
+    //-----------------
+    collisionConfig = new btDefaultCollisionConfiguration();
+    dispatcher = new btCollisionDispatcher(collisionConfig);
+    broadphase = new btDbvtBroadphase();
+    solver = new btSequentialImpulseConstraintSolver();
+    world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
+    world->setGravity(btVector3(0,-10,0));
+
+    
+    btTransform trans;
+    trans.setIdentity();
+    trans.setOrigin(btVector3(0,0,0));
+    btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(0,1,0), 0);
+    btMotionState* motion = new btDefaultMotionState(trans);
+    btRigidBody::btRigidBodyConstructionInfo info{0.0, motion, plane};
+    btRigidBody* body = new btRigidBody(info);
+    world->addRigidBody(body);
+
+    bodies.push_back(body);
+
+    addBox(btVector3(1,1,1), 0, 20, 0, 1.0);
+
+    //GLFW    
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -63,6 +132,8 @@ int main()
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
 	std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
 
+    DebugDrawer* debug = new DebugDrawer{};
+    world->setDebugDrawer(debug);
 
     // Load Textures
     //--------------------------------
@@ -86,8 +157,7 @@ int main()
         glm::vec3( 0.0f,  0.0f, -3.0f)
     };
 	
-	Shader shader("src/gl/object.vs", "src/gl/object.fs");
-
+	Shader shader("src/gl/object.vs", "src/gl/constant_color_object.fs");
     shader.use();
     // directional light
     shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -127,101 +197,15 @@ int main()
     shader.setFloat("pointLights[3].linear", 0.09);
     shader.setFloat("pointLights[3].quadratic", 0.032);
 
-    shader.setFloat("material.shininess", 32.0f);
+    shader.setFloat("shininess1", 32.0f);
 
-    shader.setInt("material.diffuse", 0);
-    shader.setInt("material.specular", 1);
+    shader.setInt("texture_diffuse1", 0);
+    shader.setInt("texture_specular1", 1);
 
     Shader lampShader("src/gl/lamp.vs", "src/gl/lamp.fs");
 
     glEnable(GL_DEPTH_TEST);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float vertices[] = {
-        // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-    };
-	//bind Vertex Array Object
-	unsigned int cubeVAO;
-	glGenVertexArrays(1, &cubeVAO);
-
-	//bind Vertex Buffer Object
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindVertexArray(cubeVAO);
-
-
-	//Set the vertex attribute pointers
-	//(index of attribute, size of attribute, type of attribute,
-	//		normalized, size of one vertex, pointer to attribute start)
-	//position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-    // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 
-        (void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // bind light VAO
-    unsigned int lightVAO;
-    glGenVertexArrays(1, &lightVAO);
-    glBindVertexArray(lightVAO);
-
-    // we already have the VBO filled
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-	
 	//Generate a camera
 	cam = new Camera{glm::vec3{0.0f, 0.0f, -10.0f}, glm::vec3{0.0f, 0.0f, 1.0f}, 
 		glm::vec3{0.0f, 1.0f, 0.0f}};
@@ -240,10 +224,15 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };    
 
-    Model myModel{"Models/HELLSCAPEXPORTTESTSNAKEY.FBX"};
+    Model myModel{"Models/snaketry.obj"};
+
+    Model cube{"Models/cube/cube.obj"};
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
+
+//    std::cout << "Snake Thing: " << std::endl << myModel;
+//    std::cout << "Cube: " << std::endl << cube;
 
 	//Main Loop
 	//---------
@@ -253,6 +242,9 @@ int main()
         float currentFrame = glfwGetTime();
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // bullet physics
+        world->stepSimulation(dt);
             
         
 		//poll inputs
@@ -279,60 +271,58 @@ int main()
 		shader.setMat4("view", view);
         shader.setVec3("viewPos", cam->position_);
 
+        debug->SetMatrices(view, projection);
+        world->debugDrawWorld();
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
         shader.setMat4("model", model);
         myModel.Draw(shader);
 
-		
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularTexture);
-        // cube
-		glBindVertexArray(cubeVAO);
-
-        for (unsigned int i = 0; i < 10; i++)
+        for (auto i = bodies.begin(); i != bodies.end(); ++i)
         {
-            glm::mat4 model{1.0f};
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f,0.3f, 0.5f));
-            shader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            renderBox(*i, shader);
         }
+		
+//        for (unsigned int i = 0; i < 10; i++)
+//        {
+//            glm::mat4 model{1.0f};
+//            model = glm::translate(model, cubePositions[i]);
+//            float angle = 20.0f * i;
+//            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f,0.3f, 0.5f));
+//            shader.setMat4("model", model);
+//            cube.Draw(shader);
+//        }
 
         // lamp
         lampShader.use();
         lampShader.setMat4("projection", projection);
         lampShader.setMat4("view", view);
     
-        glBindVertexArray(lightVAO);
-
         for (unsigned int i = 0; i < 4; i++) 
         {
             glm::mat4 model{1.0f};
             model = glm::translate(model, pointLightPositions[i]);
             model = glm::scale(model, glm::vec3{0.2f});
             lampShader.setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            cube.Draw(lampShader);
         }
 
 
 		//Handle events
 		glfwSwapBuffers(window);
 		glfwPollEvents();    
+        
 	}
 	
 	std::cout << "Closing Window" << std::endl;
 
-	glDeleteVertexArrays(1, &cubeVAO);
-    glDeleteBuffers(1, &lightVAO);
-	glDeleteBuffers(1, &VBO);
-
     delete cam;
+    delete world;
+    delete dispatcher;
+    delete broadphase;
+    delete collisionConfig;
+    delete solver;
 
 	glfwTerminate();
 	return 0;

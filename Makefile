@@ -4,9 +4,19 @@ CXX_FLAGS = -Wall -std=c++1z
 
 VCPKG = /home/ryan/Documents/vcpkg/packages
 
-INC = -I./include -I$(VCPKG)/glad_x64-linux/include/ -I$(VCPKG)/glm_x64-linux/include/ -I./libs/glfw/include/ -I./libs/assimp-build/include
+INC = -I./include -I$(VCPKG)/bullet3_x64-linux/include/bullet \
+-I$(VCPKG)/glad_x64-linux/include/ \
+-I$(VCPKG)/glm_x64-linux/include/ \
+-I./libs/glfw/include/ \
+-I./libs/assimp-build/include
 
-LIBS = -L./libs/glfw-build/src -L$(VCPKG)/glad_x64-linux/lib/ -L./libs/assimp-build/code/ -lglfw3 -lglad -lassimp -lGL -lX11 -lpthread -lXrandr -lXi -ldl 
+
+LIBS = -L$(VCPKG)/bullet3_x64-linux/lib/ \
+-L./libs/glfw-build/src \
+-L$(VCPKG)/glad_x64-linux/lib/ \
+-L./libs/assimp-build/code/ \
+-lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath\
+-lglfw3 -lglad -lassimp -lGL -lX11 -lpthread -lXrandr -lXi -ldl 
 
 includes = $(wildcard include/*.hpp)
 

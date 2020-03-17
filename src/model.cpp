@@ -77,10 +77,28 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         }
     }
 
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float shininess = 32;
     // process material
     if(mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiColor3D color;
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+        diffuse.x = color.r;
+        diffuse.y = color.g;
+        diffuse.z = color.b;
+
+//        std::cout << diffuse.x << " " << diffuse.y << " " << diffuse.z << std::endl;
+
+        material->Get(AI_MATKEY_COLOR_SPECULAR, color);
+        specular.x = color.r;
+        specular.y = color.g;
+        specular.z = color.b;
+
+        material->Get(AI_MATKEY_SHININESS, shininess);
+        
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material,
             aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
@@ -89,7 +107,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
-    return Mesh{vertices, indices, textures};
+    Mesh m{vertices, indices, textures, diffuse, specular, shininess};
+
+    return m;
 
 }
 
@@ -101,8 +121,8 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     {
         aiString str;
         mat->GetTexture(type, i, &str);
+        std::cout << "    " << str.C_Str() << std::endl;
         bool skip = false;
-        std::cout << "Loading Texture: " << str.C_Str() << std::endl;
         for(unsigned int j = 0; j < texturesLoaded_.size(); j++)
         {
             if(std::strcmp(texturesLoaded_[j].path.data(), str.C_Str()) == 0)
@@ -125,7 +145,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     return textures;
 }
 
-void Model::Draw(Shader shader) 
+void Model::Draw(Shader& shader) 
 {
     for(unsigned int i = 0; i < meshes_.size(); i++) 
     {
@@ -173,4 +193,12 @@ unsigned int TextureFromFile(const char *path, const std::string& directory, boo
     return textureID;
 }
 
+std::ostream& operator<<(std::ostream& os, const Model& m)
+{
+    for(auto iter = m.meshes_.cbegin(); iter != m.meshes_.cend(); iter++)
+    {
+        os << *iter << std::endl;
+    }
+    return os;
+}
 

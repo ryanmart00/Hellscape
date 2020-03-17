@@ -1,10 +1,12 @@
 #include "mesh.hpp"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-    std::vector<Texture> textures)
-    : vertices_{vertices}, indices_{indices}, textures_{textures} 
+    std::vector<Texture> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess)
+    : vertices_{vertices}, indices_{indices}, textures_{textures}, diffuse_{diffuse},
+        specular_{specular}, shininess_{shininess}
 {
     setupMesh();
+//    std::cout << diffuse_.x << " " << diffuse_.y << " " << diffuse_.z <<  std::endl;
 }
 
 void Mesh::setupMesh()
@@ -42,7 +44,7 @@ void Mesh::setupMesh()
     glBindVertexArray(0);
 }
 
-void Mesh::Draw(Shader shader)
+void Mesh::Draw(Shader& shader)
 {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
@@ -66,6 +68,10 @@ void Mesh::Draw(Shader shader)
         shader.setFloat(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures_[i].id);
     }
+    shader.setFloat("material.shininess", shininess_);
+    shader.setVec3("material.diffuse", diffuse_);
+    shader.setVec3("material.specular", specular_);
+    
     glActiveTexture(GL_TEXTURE0);
 
     // draw mesh
@@ -73,4 +79,32 @@ void Mesh::Draw(Shader shader)
     glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
+}
+
+std::ostream& operator<<(std::ostream& os, const Mesh& m)
+{
+    unsigned int i = 0;
+    for(auto iter = m.vertices_.begin(); iter != m.vertices_.end(); iter++)
+    {
+        os << i << ":";
+        os << iter->Position.x << " " << iter->Position.y << " " << iter->Position.z << ":";
+        os << iter->Normal.x << " " << iter->Normal.y << " " << iter->Normal.z << ":" 
+            << std::endl;
+        i++;
+    }
+    os << std::endl;
+    auto iter = m.indices_.begin(); 
+    while(iter != m.indices_.end())
+    {
+        os << *iter << ", ";
+        iter++;
+        os << *iter << ", ";
+        iter++;
+        os << *iter;
+        iter++;
+        os << std::endl;
+    }
+    os << std::endl;
+    
+    return os;
 }

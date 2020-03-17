@@ -27,9 +27,13 @@ public:
     std::vector<unsigned int> indices_;
     std::vector<Texture> textures_;
 
+    glm::vec3 diffuse_;
+    glm::vec3 specular_;
+    float shininess_;
+
     Mesh() = delete;
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, 
-        std::vector<Texture> textures);
+        std::vector<Texture> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess);
     /**
      * Draws this mesh.
      *
@@ -51,8 +55,10 @@ public:
      *
      * uniform Material material;
      */
-    void Draw(Shader shader);
+    void Draw(Shader& shader);
 
+    friend std::ostream& operator<<(std::ostream& os, const Mesh& m);
+    
 private:
     unsigned int VAO_, VBO_, EBO_;
 
@@ -64,5 +70,7 @@ private:
     void setupMesh();
 
 };
+
+std::ostream& operator<<(std::ostream& os, const Mesh& m);
 
 #endif
