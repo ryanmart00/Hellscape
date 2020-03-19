@@ -215,7 +215,7 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };    
 
-    Model myModel{"Models/snaketry.obj"};
+    Model myModel{"Models/Test Map Chain.obj"};
 
     Model cube{"Models/cube/cube.obj"};
 
@@ -269,6 +269,7 @@ int main()
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0,-10,0));
         shader.setMat4("model", model);
         myModel.Draw(shader);
 
