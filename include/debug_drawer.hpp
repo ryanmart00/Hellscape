@@ -7,18 +7,18 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "shader.hpp"
 
-GLuint VBO, VAO;
 class DebugDrawer : public btIDebugDraw {
 public:
+    GLuint VBO, VAO;
     DebugDrawer()
         : m{0}, shader{"src/gl/debug.vs","src/gl/debug.fs"}
     {
-        std::cout << "Constructor" << std::endl;
     }
-	void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix) 
+
+	void SetMatrices(glm::mat4 viewMatrix, glm::mat4 projectionMatrix) 
 	{
-		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(pProjectionMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(pViewMatrix));
+        shader.setMat4("projection", projectionMatrix);
+        shader.setMat4("view", viewMatrix);
 	}
 
 	virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) 

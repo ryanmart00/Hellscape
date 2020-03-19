@@ -11,11 +11,10 @@
 #include "camera.hpp"
 #include "shader.hpp"
 #include "model.hpp"
-#include <vector>
 
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
-#include "debug_drawer.hpp"
+#include "dynamics.hpp"
 
 using namespace std;
 
@@ -30,13 +29,7 @@ const unsigned int SCR_HEIGHT = 600;
 
 Camera* cam;
 
-btDynamicsWorld* world;
-btDispatcher* dispatcher;
-btBroadphaseInterface* broadphase;
-btConstraintSolver* solver;
-btCollisionConfiguration* collisionConfig;
-
-std::vector<btRigidBody*> bodies;
+Dynamics* world;
 
 btRigidBody* addBox(btVector3 dim, float x, float y, float z, float mass)
 {
@@ -51,7 +44,6 @@ btRigidBody* addBox(btVector3 dim, float x, float y, float z, float mass)
     btRigidBody* body = new btRigidBody(info);
     world->addRigidBody(body);
 
-    bodies.push_back(body);
     return body;
 }
 
@@ -70,32 +62,11 @@ void renderBox(btRigidBody* box, Shader& shader)
     cube.Draw(shader);
 }
 
-int main()
+/**
+ * Initializes the GLFW Window and starts up GLAD
+ */
+GLFWwindow* initWindow()/*{{{*/
 {
-    //Initialize Bullet
-    //-----------------
-    collisionConfig = new btDefaultCollisionConfiguration();
-    dispatcher = new btCollisionDispatcher(collisionConfig);
-    broadphase = new btDbvtBroadphase();
-    solver = new btSequentialImpulseConstraintSolver();
-    world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
-    world->setGravity(btVector3(0,-10,0));
-
-    
-    btTransform trans;
-    trans.setIdentity();
-    trans.setOrigin(btVector3(0,0,0));
-    btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(0,1,0), 0);
-    btMotionState* motion = new btDefaultMotionState(trans);
-    btRigidBody::btRigidBodyConstructionInfo info{0.0, motion, plane};
-    btRigidBody* body = new btRigidBody(info);
-    world->addRigidBody(body);
-
-    bodies.push_back(body);
-
-    addBox(btVector3(1,1,1), 0, 20, 0, 1.0);
-
-    //GLFW    
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -112,14 +83,14 @@ int main()
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+        std::exit(1);
 	}
 	glfwMakeContextCurrent(window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
+		std::exit(1);
 	}   
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
@@ -131,9 +102,29 @@ int main()
 	int numAttr;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
 	std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
+    return window;
+}/*}}}*/
 
-    DebugDrawer* debug = new DebugDrawer{};
-    world->setDebugDrawer(debug);
+int main()
+{
+
+    //GLFW    
+    GLFWwindow* window = initWindow();
+
+    //Initialize Bullet
+    //-----------------
+    world = new Dynamics(btVector3(0,-10,0));
+    
+    btTransform trans;
+    trans.setIdentity();
+    trans.setOrigin(btVector3(0,0,0));
+    btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(0,1,0), 0);
+    btMotionState* motion = new btDefaultMotionState(trans);
+    btRigidBody::btRigidBodyConstructionInfo info{0.0, motion, plane};
+    btRigidBody* body = new btRigidBody(info);
+    world->addRigidBody(body);
+
+    addBox(btVector3(1,1,1), 0, 20, 0, 1.0);
 
     // Load Textures
     //--------------------------------
@@ -271,15 +262,17 @@ int main()
 		shader.setMat4("view", view);
         shader.setVec3("viewPos", cam->position_);
 
-        debug->SetMatrices(view, projection);
-        world->debugDrawWorld();
+        #if DEBUG
+            debug->SetMatrices(view, projection);
+            world->debugDrawWorld();
+        #endif
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
         shader.setMat4("model", model);
         myModel.Draw(shader);
 
-        for (auto i = bodies.begin(); i != bodies.end(); ++i)
+        for (auto i = world->bodies_.begin(); i != world->bodies_.end(); ++i)
         {
             renderBox(*i, shader);
         }
@@ -319,10 +312,6 @@ int main()
 
     delete cam;
     delete world;
-    delete dispatcher;
-    delete broadphase;
-    delete collisionConfig;
-    delete solver;
 
 	glfwTerminate();
 	return 0;
