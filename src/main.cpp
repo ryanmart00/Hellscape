@@ -53,7 +53,7 @@ void renderBox(btRigidBody* box, Shader& shader)
     {
         return;
     }  
-    Model cube{"Models/cube/cube.obj"};
+    Model cube{"assets/Models/cube/cube.obj"};
     btTransform t;
     box->getMotionState()->getWorldTransform(t);
     float mat[16];
@@ -107,7 +107,6 @@ GLFWwindow* initWindow()/*{{{*/
 
 int main()
 {
-
     //GLFW    
     GLFWwindow* window = initWindow();
 
@@ -130,10 +129,10 @@ int main()
     //--------------------------------
     
     unsigned int diffuseTexture;
-    loadTexture(diffuseTexture, "Textures/container2.png", true);
+    loadTexture(diffuseTexture, "assets/Textures/container2.png", true);
 
     unsigned int specularTexture;
-    loadTexture(specularTexture, "Textures/container2_specular.png", true);
+    loadTexture(specularTexture, "assets/Textures/container2_specular.png", true);
 
 
 	//Generation of the Shader Program
@@ -148,7 +147,7 @@ int main()
         glm::vec3( 0.0f,  0.0f, -3.0f)
     };
 	
-	Shader shader("src/gl/object.vs", "src/gl/constant_color_object.fs");
+	Shader shader("assets/gl/object.vs", "assets/gl/constant_color_object.fs");
     shader.use();
     // directional light
     shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -193,7 +192,7 @@ int main()
     shader.setInt("texture_diffuse1", 0);
     shader.setInt("texture_specular1", 1);
 
-    Shader lampShader("src/gl/lamp.vs", "src/gl/lamp.fs");
+    Shader lampShader("assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
     glEnable(GL_DEPTH_TEST);
 
@@ -215,9 +214,9 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };    
 
-    Model myModel{"Models/Test Map Chain.obj"};
+    Model myModel{"assets/Models/Test Map Chain.obj"};
 
-    Model cube{"Models/cube/cube.obj"};
+    Model cube{"assets/Models/cube/cube.obj"};
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
