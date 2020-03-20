@@ -11,7 +11,7 @@ INC = -I./include -I$(VCPKG)/bullet3_x64-linux/include/bullet \
 -I./libs/assimp-build/include
 
 
-LIBS = -L$(VCPKG)/bullet3_x64-linux/lib/ \
+LIBS = -L./libs/-L$(VCPKG)/bullet3_x64-linux/lib/ \
 -L./libs/glfw-build/src \
 -L$(VCPKG)/glad_x64-linux/lib/ \
 -L./libs/assimp-build/code/ \

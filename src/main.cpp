@@ -12,8 +12,8 @@
 #include "shader.hpp"
 #include "model.hpp"
 
-#include <btBulletCollisionCommon.h>
-#include <btBulletDynamicsCommon.h>
+#include <bullet/btBulletCollisionCommon.h>
+#include <bullet/btBulletDynamicsCommon.h>
 #include "dynamics.hpp"
 
 using namespace std;
