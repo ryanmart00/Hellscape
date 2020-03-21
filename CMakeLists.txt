@@ -8,6 +8,8 @@ file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 #include header files
 include_directories(include)
 
+add_definitions("-std=c++11")
+
 
 #include assimp
 #---------------------------------
