@@ -1,3 +1,0 @@
-In order to dynamically link assimp to the project, one must copy the .so files
-stored in libs/assimp-build/code to /usr/local/lib (or equivalent) and make sure
-/usr/local/lib is in LD_LIBRARY_PATH

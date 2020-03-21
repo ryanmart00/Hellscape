@@ -1,7 +1,7 @@
 #ifndef DYNAMICS_HPP
 #define DYNAMICS_HPP
 
-#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include <vector>
 #include "debug_drawer.hpp"
 #include <glm/glm.hpp>
