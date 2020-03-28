@@ -1,8 +1,7 @@
 # Hellscape
 
-## Download
-### Windows 64 bit
-<a id="raw-url" href="https://raw.githubusercontent.com/ryanmart00/Hellscape/master/builds/Win64/Hellscape.zip">Download FILE</a>
+## Pre-built Downloads
+<a id="raw-url" href="https://raw.githubusercontent.com/ryanmart00/Hellscape/master/builds/Win64/Hellscape.zip"> Windows 64-bit</a>
 
 
 ## Installation:
