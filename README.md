@@ -1,12 +1,12 @@
 # Hellscape
 
-## Pre-built Downloads
+## Pre-built Binaries
 <a id="raw-url" href="https://raw.githubusercontent.com/ryanmart00/Hellscape/master/builds/Win64/Hellscape.zip"> Windows 64-bit</a>
 
 <a id="raw-url" href="https://raw.githubusercontent.com/ryanmart00/Hellscape/master/builds/Linux/Hellscape.zip"> Linux 64-bit</a>
 
-## Installation:
-1. Install using cmake 
+## Or:
+Build from source with cmake
 
 ## Credits:
 - Assimp:  https://github.com/assimp/assimp
