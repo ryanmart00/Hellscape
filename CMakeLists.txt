@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(HellScape)
+project(Hellscape)
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
+
+
 
 #include header files
 include_directories(include)
@@ -12,6 +14,7 @@ if(WIN32)
     file(GLOB WINDOWSDLL "libs/WindowsDll/*")
     file(COPY ${WINDOWSDLL} DESTINATION ${CMAKE_BINARY_DIR})
 endif(WIN32)
+
 
 
 #include assimp
@@ -72,10 +75,30 @@ link_directories(${PROJECT_BINARY_DIR}/libs/glfw/src)
 file(GLOB SOURCES "src/*.c*")
 
 # add the executable
-add_executable(HellScape ${SOURCES})
-target_link_libraries(HellScape 
+add_executable(Hellscape ${SOURCES})
+target_link_libraries(Hellscape 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 
     glfw ${GLFW_LIBRARIES})
 #-lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath\
 #-lglfw3 -lglad -lassimp -lGL -lX11 -lpthread -lXrandr -lXi -ldl 
+
+#add zipping commands
+option(ZIP "Zip the files into the builds folder" OFF)
+if(${ZIP} AND WIN32)
+    message("Zipping for windows")
+    add_custom_command(TARGET Hellscape 
+		POST_BUILD
+		COMMAND zip 
+		ARGS ${CMAKE_SOURCE_DIR}/builds/Win64/Hellscape.zip 
+		Hellscape.exe libgcc_s_seh-1.dll libstdc++-6.dll
+		libwinpthread-1.dll zlib1.dll)
+elseif(${ZIP})
+    message("Zipping for linux")
+    add_custom_command(TARGET Hellscape 
+		POST_BUILD
+		COMMAND zip 
+		ARGS ${CMAKE_SOURCE_DIR}/builds/Linux/Hellscape.zip 
+		Hellscape)
+endif()
+
