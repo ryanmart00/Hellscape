@@ -1,11 +1,12 @@
 # Hellscape
 
+## Download
+### Windows 64 bit
+<a id="raw-url" href="https://raw.githubusercontent.com/ryanmart00/Hellscape/master/builds/Win64/Hellscape.zip">Download FILE</a>
+
+
 ## Installation:
-1. Install cmake using a package manager or direct download: https://cmake.org/download/ (We'll be building the project from source!)
-2. Git clone/download this repo (TODO: this might take a while as there are a lot of unbuilt libs...)
-3. Make a folder _build_ in the root directory of HellScape.
-4. Make folders _bullet3-build_ and _assimp-build_ in the _libs_ folder.
-5. Run cmake on _bullet3_ (setting the build location to _bullet3-build_), and similarly for assimp
+1. Install using cmake 
 
 ## Credits:
 - Assimp:  https://github.com/assimp/assimp
