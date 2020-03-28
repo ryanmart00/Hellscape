@@ -8,7 +8,10 @@ file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 #include header files
 include_directories(include)
 
-add_definitions("-std=c++11")
+if(WIN32)
+    file(GLOB WINDOWSDLL "libs/WindowsDll/*")
+    file(COPY ${WINDOWSDLL} DESTINATION ${CMAKE_BINARY_DIR})
+endif(WIN32)
 
 
 #include assimp
@@ -47,10 +50,11 @@ MACRO(MATCH_DIRECTORIES glob return_list)
     SET(${return_list} ${dir_list})
 ENDMACRO()
 
-MATCH_DIRECTORIES(libs/bullet3/*.h* BULLET_INCLUDE)
+MATCH_DIRECTORIES(libs/bullet3/src/*.h* BULLET_INCLUDE)
 FILE(GLOB BULLET_LINK ${PROJECT_BINARY_DIR}/libs/bullet3/src/**)
 message("Bullet link" ${BULLET_LINK})
 include_directories(${BULLET_INCLUDE})
+include_directories(libs/bullet3)
 link_directories(${BULLET_LINK})
 
 
@@ -72,6 +76,6 @@ add_executable(HellScape ${SOURCES})
 target_link_libraries(HellScape 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 
-    glfw ${GLFW_LIBRARIES} rt)
+    glfw ${GLFW_LIBRARIES})
 #-lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath\
 #-lglfw3 -lglad -lassimp -lGL -lX11 -lpthread -lXrandr -lXi -ldl 

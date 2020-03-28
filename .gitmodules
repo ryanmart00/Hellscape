@@ -10,6 +10,3 @@
 [submodule "libs/glfw"]
 	path = libs/glfw
 	url = https://github.com/glfw/glfw
-[submodule "libs/GWEN"]
-	path = libs/GWEN
-	url = https://github.com/garrynewman/GWEN.git
