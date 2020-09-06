@@ -24,7 +24,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Model& m);
 
-private:
+public:
     
     std::vector<Mesh> meshes_;
     std::string directory_;

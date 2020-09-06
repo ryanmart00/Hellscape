@@ -282,7 +282,7 @@ int main()
 		shader.setMat4("view", view);
         shader.setVec3("viewPos", cam->position_);
 
-        world->debugDraw(projection, view);
+//        world->debugDraw(projection, view);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0,-50,0));
