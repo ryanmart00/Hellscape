@@ -1,23 +1,52 @@
 #ifndef ASSET_MANAGER_HPP
 #define ASSET_MANAGER_HPP
 
+#include "model.hpp"
 #include <unordered_map>
 #include <string>
-#include "model.hpp"
+#include <future>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 class AssetManager
 {
 public:
-    AssetManager();
+    AssetManager() = default;
     ~AssetManager();
+    AssetManager(const AssetManager&) = delete;
+    AssetManager& operator=(const AssetManager&) = delete;
+    AssetManager(AssetManager&&) noexcept = delete;
+    AssetManager& operator=(AssetManager&&) noexcept = delete;
 
-    void load(const std::string file);
+    /**
+     * Load's the model found in file asyncronously.
+     */  
+    void load(const std::string& file);
 
-    Model* get(const std::string file) const;
+    /**
+     * Returns a pointer to the loaded model in file
+     *
+     * get blocks until the model is loaded so, if you want 
+     * async model loading call load(file) prior to calling get!
+     *
+     * The asset manager keeps track of how many times get was called 
+     * so that it will keep the model in memory while it is being used.
+     */
+    Model* get(const std::string& file);
     
-    bool contains(const std::string file);
+    /** 
+     * Decrements one from file's reference count. If the reference count drops to 0, 
+     * the asset manager is free to delete the model to conserve space
+     */
+    void unload(const std::string& file);
+
+    /**
+     * Returns true iff the model stored in file has been loaded and not yet deleted.
+     */
+    bool contains(const std::string& file);
 
 private:
+
     struct MyHash
     {
         const uint32_t Prime = 0x01000193;  //   16777619
@@ -37,6 +66,17 @@ private:
         }
 
     };
-    std::unordered_map<const char*, Model*, MyHash> map_;
+
+    struct ModelCount
+    {
+        ModelCount(int count, Model* model) : count_{count}, model_{model} {} 
+    
+        int count_;
+        Model* model_;
+    };
+    
+    std::unordered_map<std::string, ModelCount, MyHash> models_;
+
+    std::unordered_map<std::string, std::future<Model*>, MyHash> futures_;
 };
 #endif

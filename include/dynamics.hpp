@@ -1,5 +1,5 @@
-#ifndef DYNAMICS_HPP
-#define DYNAMICS_HPP
+#ifndef MY_DYNAMICS_HPP
+#define MY_DYNAMICS_HPP
 
 #include <btBulletDynamicsCommon.h>
 #include <vector>

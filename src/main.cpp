@@ -1,4 +1,8 @@
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/scalar_constants.hpp"
+#include "glm/geometric.hpp"
 #include "mesh.hpp"
+#include "dynamics.hpp"
 #include <iostream>
 #include <tgmath.h>
 #include <glad/glad.h>
@@ -11,10 +15,12 @@
 #include "camera.hpp"
 #include "shader.hpp"
 #include "model.hpp"
+#include "asset_manager.hpp"
 
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
-#include "dynamics.hpp"
+
+#define DEBUG
 
 using namespace std;
 
@@ -30,6 +36,8 @@ const unsigned int SCR_HEIGHT = 600;
 Camera* cam;
 
 Dynamics* world;
+
+AssetManager* manager;
 
 btRigidBody* addBox(btVector3 dim, float x, float y, float z, float mass)
 {
@@ -47,13 +55,12 @@ btRigidBody* addBox(btVector3 dim, float x, float y, float z, float mass)
     return body;
 }
 
-void renderBox(btRigidBody* box, Shader& shader)
+void renderBox(Model& cube, btRigidBody* box, Shader& shader)
 {
     if(box->getCollisionShape()->getShapeType() != BOX_SHAPE_PROXYTYPE)
     {
         return;
     }  
-    Model cube{"assets/Models/cube/cube.obj"};
     btTransform t;
     box->getMotionState()->getWorldTransform(t);
     float mat[16];
@@ -65,7 +72,7 @@ void renderBox(btRigidBody* box, Shader& shader)
 /**
  * Initializes the GLFW Window and starts up GLAD
  */
-GLFWwindow* initWindow()/*{{{*/
+GLFWwindow* initWindow()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -103,12 +110,18 @@ GLFWwindow* initWindow()/*{{{*/
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
 	std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
     return window;
-}/*}}}*/
+}
 
 int main()
 {
     //GLFW    
     GLFWwindow* window = initWindow();
+    
+    //load models
+//    manager = new AssetManager{};
+//    manager->load("assets/Models/Island/object.dae");
+//    manager->load("assets/Models/cube/cube.obj");
+    
 
     //Initialize Bullet
     //-----------------
@@ -128,11 +141,11 @@ int main()
     // Load Textures
     //--------------------------------
     
-    unsigned int diffuseTexture;
-    loadTexture(diffuseTexture, "assets/Textures/container2.png", true);
+//    unsigned int diffuseTexture;
+//    loadTexture(diffuseTexture, "assets/Textures/container2.png", true);
 
-    unsigned int specularTexture;
-    loadTexture(specularTexture, "assets/Textures/container2_specular.png", true);
+//    unsigned int specularTexture;
+//    loadTexture(specularTexture, "assets/Textures/container2_specular.png", true);
 
 
 	//Generation of the Shader Program
@@ -147,7 +160,7 @@ int main()
         glm::vec3( 0.0f,  0.0f, -3.0f)
     };
 	
-	Shader shader("assets/gl/object.vs", "assets/gl/constant_color_object.fs");
+	Shader shader("assets/gl/object.vs", "assets/gl/object.fs", "assets/gl/object.gs");
     shader.use();
     // directional light
     shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -214,9 +227,17 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };    
 
-    Model myModel{"assets/Models/Test Map Chain.obj"};
 
+//    Model& myModel = *manager->get("assets/Models/Island/object.dae");
+
+    Model myModel{"assets/Models/Island/object.dae"};
+//    myModel.setupModel();
+
+//    std::cout << myModel.texturesLoaded_.size() << std::endl;
+
+//    Model& cube = *manager->get("assets/Models/cube/cube.obj");
     Model cube{"assets/Models/cube/cube.obj"};
+//    cube.setupModel();
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
@@ -254,27 +275,24 @@ int main()
 		
 		//projection: generates frustum	
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
-			((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 100.0f); 
+			((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
 		//view: the inverse transform of the camera's local transformation
 		glm::mat4 view = cam->view();
 		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
         shader.setVec3("viewPos", cam->position_);
 
-        #if DEBUG
-            debug->SetMatrices(view, projection);
-            world->debugDrawWorld();
-        #endif
+        world->debugDraw(projection, view);
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-        model = glm::translate(model, glm::vec3(0,-10,0));
+        model = glm::translate(model, glm::vec3(0,-50,0));
+        model = glm::rotate(model, -glm::pi<float>()/2, glm::vec3(1,0,0));
         shader.setMat4("model", model);
         myModel.Draw(shader);
 
         for (auto i = world->bodies_.begin(); i != world->bodies_.end(); ++i)
         {
-            renderBox(*i, shader);
+            renderBox(cube, *i, shader);
         }
 		
 //        for (unsigned int i = 0; i < 10; i++)
@@ -312,6 +330,7 @@ int main()
 
     delete cam;
     delete world;
+    delete manager;
 
 	glfwTerminate();
 	return 0;
@@ -331,20 +350,28 @@ void processInput(GLFWwindow *window, Camera& cam, float dt)
 	}
 	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-        cam.position_ += cam.getForward() * dt * 2.0f;
+        cam.position_ += glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 10.0f;
 	}
 	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-        cam.position_ -= cam.getForward() * dt * 2.0f;
+        cam.position_ -= glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 5.0f;
 	}
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-        cam.position_ -= cam.getRight() * dt * 2.0f;
+        cam.position_ -= cam.getRight() * dt * 7.0f;
 	}
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-        cam.position_ += cam.getRight() * dt * 2.0f;
+        cam.position_ += cam.getRight() * dt * 7.0f;
 	}
+    if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS) 
+    {
+        cam.position_ += glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
+    }
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
+    {
+        cam.position_ -= glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -379,11 +406,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     
 }
 
-void loadTexture(unsigned int& texture, const char* file, bool hasAlpha)
+void loadTexture(unsigned int& texture, const char* file, bool hasAlpha, std::mutex& glmutex)
 {
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
 
+    glmutex.lock();
 	glGenTextures(1, &texture);
 
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -415,6 +443,7 @@ void loadTexture(unsigned int& texture, const char* file, bool hasAlpha)
 		std::cout << "Failed to load texture" << std::endl;
         std::exit(1);
 	}
+    glmutex.unlock();
 
 	stbi_image_free(data);
 }
