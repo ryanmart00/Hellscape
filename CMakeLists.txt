@@ -90,15 +90,15 @@ if(${ZIP} AND WIN32)
     add_custom_command(TARGET Hellscape 
 		POST_BUILD
 		COMMAND zip 
-		ARGS ${CMAKE_SOURCE_DIR}/builds/Win64/Hellscape.zip 
+		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Win64/Hellscape.zip 
 		Hellscape.exe libgcc_s_seh-1.dll libstdc++-6.dll
-		libwinpthread-1.dll zlib1.dll)
+		libwinpthread-1.dll zlib1.dll assets)
 elseif(${ZIP})
     message("Zipping for linux")
     add_custom_command(TARGET Hellscape 
 		POST_BUILD
 		COMMAND zip 
-		ARGS ${CMAKE_SOURCE_DIR}/builds/Linux/Hellscape.zip 
-		Hellscape)
+		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Linux/Hellscape.zip 
+		Hellscape assets)
 endif()
 
