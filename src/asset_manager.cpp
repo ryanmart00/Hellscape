@@ -26,25 +26,29 @@ Model* AssetManager::get(const std::string& file)
     auto i = models_.find(file);
     if (i == models_.end())
     {
+        // If we have yet to finish loading the models
         std::cout << "Not in models_: " << file << std::endl;
         auto j = futures_.find(file);
         if (j == futures_.end())
         {
+            // We still need to load it
             std::cout << "Not in futures_: " << file << std::endl;
             Model* model = new Model(file);
-//            model->setupModel();
+            model->initializeGL();
             ModelCount mc{1, model};
             models_.emplace(file, mc);
             return model;
         }
         else
         {
+            // We need to wait for the future
             std::cout << "Wait for future: " << j->second.valid() << std::endl;
             j->second.wait();
             std::cout << "Waiting complete: " << file << std::endl;
             Model* model = j->second.get();
-//            model->setupModel();
+            model->initializeGL();
             std::cout << "Retrieved model from future: " << file << std::endl;
+            j = futures_.erase(j);
             ModelCount mc{1, model};
             models_.emplace(file, mc);
             return model;

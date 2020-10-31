@@ -118,8 +118,8 @@ int main()
     GLFWwindow* window = initWindow();
     
     //load models
-//    manager = new AssetManager{};
-//    manager->load("assets/Models/Island/object.dae");
+    manager = new AssetManager{};
+    manager->load("assets/Models/Island/object.dae");
 //    manager->load("assets/Models/cube/cube.obj");
     
 
@@ -228,10 +228,10 @@ int main()
     };    
 
 
-//    Model& myModel = *manager->get("assets/Models/Island/object.dae");
+    Model& myModel = *manager->get("assets/Models/Island/object.dae");
 
-    Model myModel{"assets/Models/Island/object.dae"};
-    myModel.initializeGL();
+//    Model myModel{"assets/Models/Island/object.dae"};
+//    myModel.initializeGL();
 
 //    std::cout << myModel.texturesLoaded_.size() << std::endl;
 
