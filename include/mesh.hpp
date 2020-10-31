@@ -25,7 +25,7 @@ class Mesh
 public: 
     std::vector<Vertex> vertices_;
     std::vector<unsigned int> indices_;
-    std::vector<Texture> textures_;
+    std::vector<Texture*> textures_;
 
     glm::vec3 diffuse_;
     glm::vec3 specular_;
@@ -33,7 +33,7 @@ public:
 
     Mesh() = delete;
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, 
-        std::vector<Texture> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess);
+        std::vector<Texture*> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess);
     /**
      * Draws this mesh.
      *
@@ -58,9 +58,6 @@ public:
     void Draw(Shader& shader);
 
     friend std::ostream& operator<<(std::ostream& os, const Mesh& m);
-    
-private:
-    unsigned int VAO_, VBO_, EBO_;
 
     /**
      * Binds the vertices and vertex attributes to VAO_.
@@ -68,6 +65,10 @@ private:
      * Note: adding vertex attributes would happen in here
      */
     void setupMesh();
+    
+private:
+    unsigned int VAO_, VBO_, EBO_;
+
 
 };
 

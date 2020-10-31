@@ -15,6 +15,20 @@ Model::Model(std::string path)
     directory_ = path.substr(0, path.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
+    // We initialize the rest when we have a GL context
+//    initializeGL();
+}
+
+void Model::initializeGL()
+{
+    for(auto i = texturesLoaded_.begin(); i != texturesLoaded_.end(); ++i)
+    {
+        (*i)->id = TextureFromFile((*i)->path.c_str(), directory_);
+    }
+    for(auto i = meshes_.begin(); i != meshes_.end(); ++i)
+    {
+        i->setupMesh();
+    }
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -36,7 +50,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    std::vector<Texture*> textures;
 
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -99,10 +113,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
         material->Get(AI_MATKEY_SHININESS, shininess);
         
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material,
+        
+        std::vector<Texture*> diffuseMaps = loadMaterialTextures(material,
             aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        std::vector<Texture> specularMaps = loadMaterialTextures(material,
+        std::vector<Texture*> specularMaps = loadMaterialTextures(material,
             aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
@@ -113,10 +128,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
+std::vector<Texture*> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
     std::string typeName)
 {
-    std::vector<Texture> textures;
+    std::vector<Texture*> textures;
     for(unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
@@ -125,7 +140,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         bool skip = false;
         for(unsigned int j = 0; j < texturesLoaded_.size(); j++)
         {
-            if(std::strcmp(texturesLoaded_[j].path.data(), str.C_Str()) == 0)
+            if(std::strcmp(texturesLoaded_[j]->path.data(), str.C_Str()) == 0)
             {
                 textures.push_back(texturesLoaded_[j]);
                 skip = true;
@@ -134,10 +149,11 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         }
         if(!skip)
         {
-            Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), directory_);
-            texture.type = typeName;
-            texture.path = str.C_Str();
+            Texture* texture = new Texture();
+//          We load the texture id later when we have a gl environment
+//            texture.id = TextureFromFile(str.C_Str(), directory_);
+            texture->type = typeName;
+            texture->path = str.C_Str();
             textures.push_back(texture);
             texturesLoaded_.push_back(texture);
         }   

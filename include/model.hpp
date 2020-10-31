@@ -19,6 +19,8 @@ class Model
 public:
     Model() = delete;
     Model(std::string path);
+
+    void initializeGL();
     
     void Draw(Shader& shader);
 
@@ -28,11 +30,11 @@ public:
     
     std::vector<Mesh> meshes_;
     std::string directory_;
-    std::vector<Texture> texturesLoaded_;
+    std::vector<Texture*> texturesLoaded_;
     
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type,
+    std::vector<Texture*> loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         std::string typeName);
 
 };

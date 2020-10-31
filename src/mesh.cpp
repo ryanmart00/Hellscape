@@ -1,12 +1,12 @@
 #include "mesh.hpp"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-    std::vector<Texture> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess)
+    std::vector<Texture*> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess)
     : vertices_{vertices}, indices_{indices}, textures_{textures}, diffuse_{diffuse},
         specular_{specular}, shininess_{shininess}
 {
-    setupMesh();
-//    std::cout << diffuse_.x << " " << diffuse_.y << " " << diffuse_.z <<  std::endl;
+    // We call setupmesh later with a gl environment
+    // setupMesh();
 }
 
 void Mesh::setupMesh()
@@ -44,6 +44,8 @@ void Mesh::setupMesh()
     glBindVertexArray(0);
 }
 
+
+
 void Mesh::Draw(Shader& shader)
 {
     unsigned int diffuseNr = 1;
@@ -54,7 +56,7 @@ void Mesh::Draw(Shader& shader)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         std::string number;
-        std::string name = textures_[i].type;
+        std::string name = textures_[i]->type;
         if(name == "texture_diffuse")
         {
             number = std::to_string(diffuseNr);
@@ -66,7 +68,7 @@ void Mesh::Draw(Shader& shader)
             specularNr++;
         }
         shader.setFloat(("material." + name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures_[i].id);
+        glBindTexture(GL_TEXTURE_2D, textures_[i]->id);
     }
     shader.setFloat("material.shininess", shininess_);
     shader.setVec3("material.diffuse", diffuse_);

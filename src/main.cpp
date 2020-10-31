@@ -231,13 +231,13 @@ int main()
 //    Model& myModel = *manager->get("assets/Models/Island/object.dae");
 
     Model myModel{"assets/Models/Island/object.dae"};
-//    myModel.setupModel();
+    myModel.initializeGL();
 
 //    std::cout << myModel.texturesLoaded_.size() << std::endl;
 
 //    Model& cube = *manager->get("assets/Models/cube/cube.obj");
     Model cube{"assets/Models/cube/cube.obj"};
-//    cube.setupModel();
+    cube.initializeGL();
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
