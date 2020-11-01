@@ -10,6 +10,7 @@ Dynamics::Dynamics(btVector3 gravity)
     world_->setGravity(gravity);
     debug_ = new DebugDrawer{};
     world_->setDebugDrawer(debug_);
+//    world_->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 }
 
 Dynamics::~Dynamics()

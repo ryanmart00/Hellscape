@@ -17,6 +17,7 @@ public:
 
 	void SetMatrices(glm::mat4 viewMatrix, glm::mat4 projectionMatrix) 
 	{
+        shader.use();
         shader.setMat4("projection", projectionMatrix);
         shader.setMat4("view", viewMatrix);
 	}
@@ -40,6 +41,9 @@ public:
 		points[10] = color.y();
 		points[11] = color.z();
 
+        shader.use();
+
+
 		glDeleteBuffers(1, &VBO);
 		glDeleteVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
@@ -48,9 +52,10 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*) 0);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 
+            (void*)(3 * sizeof(GLfloat)));
 		glBindVertexArray(0);
 
 		glBindVertexArray(VAO);
