@@ -30,6 +30,11 @@ btRigidBody* Dynamics::addRigidBody(btRigidBody* body)
     return body;
 }
 
+void Dynamics::removeRigidBody(btRigidBody* body)
+{
+    world_->removeRigidBody(body);
+}
+
 void Dynamics::stepSimulation(float dt)
 {
     world_->stepSimulation(dt);

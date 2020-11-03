@@ -10,6 +10,7 @@ class Camera
 public:
     glm::vec3 position_;
     glm::quat orientation_;
+    glm::mat4 transpose_;
 
     Camera() = delete;
     Camera(const glm::vec3& pos, const glm::quat& orient);

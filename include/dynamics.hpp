@@ -1,6 +1,7 @@
 #ifndef MY_DYNAMICS_HPP
 #define MY_DYNAMICS_HPP
 
+#include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include <vector>
 #include "debug_drawer.hpp"
@@ -20,6 +21,8 @@ public:
      * Adds a rigid body to the dynamics world
      */
     btRigidBody* addRigidBody(btRigidBody* body);
+
+    void removeRigidBody(btRigidBody* body);
 
     void stepSimulation(float dt);
 

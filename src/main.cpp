@@ -19,6 +19,7 @@
 
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
+#include "game_object.hpp"
 
 #define DEBUG
 
@@ -119,7 +120,7 @@ int main()
     
     //load models
     manager = new AssetManager{};
-    manager->load("assets/Models/Island/object.dae");
+//    manager->load("assets/Models/Island/object.dae");
 //    manager->load("assets/Models/cube/cube.obj");
     
 
@@ -207,6 +208,11 @@ int main()
 
     Shader lampShader("assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
+    // After we generate shaders load objects
+    btTransform islandOrigin;
+    islandOrigin.setIdentity();
+    StaticObject myModel(nullptr, manager, "assets/Models/Island/object.dae", 
+        shader, islandOrigin);    
     glEnable(GL_DEPTH_TEST);
 
 	//Generate a camera
@@ -214,24 +220,26 @@ int main()
 		glm::vec3{0.0f, 1.0f, 0.0f}};
 
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };    
+//    glm::vec3 cubePositions[] = {
+//        glm::vec3( 0.0f,  0.0f,  0.0f),
+//        glm::vec3( 2.0f,  5.0f, -15.0f),
+//        glm::vec3(-1.5f, -2.2f, -2.5f),
+//        glm::vec3(-3.8f, -2.0f, -12.3f),
+//        glm::vec3( 2.4f, -0.4f, -3.5f),
+//        glm::vec3(-1.7f,  3.0f, -7.5f),
+//        glm::vec3( 1.3f, -2.0f, -2.5f),
+//        glm::vec3( 1.5f,  2.0f, -2.5f),
+//        glm::vec3( 1.5f,  0.2f, -1.5f),
+//        glm::vec3(-1.3f,  1.0f, -1.5f)
+//    };    
 
 
-    Model& myModel = *manager->get("assets/Models/Island/object.dae");
+//    Model& myModel = *manager->get("assets/Models/Island/object.dae");
 
 //    Model myModel{"assets/Models/Island/object.dae"};
 //    myModel.initializeGL();
+
+    myModel.hardInit(world);
 
 //    std::cout << myModel.texturesLoaded_.size() << std::endl;
 
@@ -288,7 +296,7 @@ int main()
         model = glm::translate(model, glm::vec3(0,-50,0));
         model = glm::rotate(model, -glm::pi<float>()/2, glm::vec3(1,0,0));
         shader.setMat4("model", model);
-        myModel.Draw(shader);
+        myModel.Draw();
 
         for (auto i = world->bodies_.begin(); i != world->bodies_.end(); ++i)
         {
@@ -375,7 +383,7 @@ void processInput(GLFWwindow *window, Camera& cam, float dt)
     }
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
@@ -385,7 +393,7 @@ bool firstMouse = true;
 
 const glm::vec3 UP{0.0f, 1.0f, 0.0f};
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
     if(firstMouse)
     {
