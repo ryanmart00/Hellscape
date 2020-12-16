@@ -1,9 +1,9 @@
 # Hellscape
 
 ## Pre-built Binaries
-<a id="raw-url" href="https://media.githubusercontent.com/ryanmart00/Hellscape/master/builds/Win64/Hellscape.zip"> Windows 64-bit</a>
+<a id="raw-url" href="https://github.com/ryanmart00/Hellscape/raw/master/builds/Win64/Hellscape.zip"> Windows 64-bit</a>
 
-<a id="raw-url" href="https://media.githubusercontent.com/ryanmart00/Hellscape/master/builds/Linux/Hellscape.zip"> Linux 64-bit</a>
+<a id="raw-url" href="https://github.com/ryanmart00/Hellscape/raw/master/builds/Linux/Hellscape.zip"> Linux 64-bit</a>
 
 ## Or:
 Build from source with cmake
@@ -209,4 +209,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
