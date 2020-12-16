@@ -70,7 +70,7 @@ class StaticObject : public BaseObject
 public:
     StaticObject() = delete;
     StaticObject(const StaticObject&) = delete;
-    StaticObject(BaseObject*, AssetManager*, std::string, Shader&, btTransform); 
+    StaticObject(BaseObject*, AssetManager*, std::string, std::string, Shader&, btTransform); 
     virtual ~StaticObject();
 
     virtual void draw();
@@ -91,6 +91,7 @@ protected:
     btMotionState* motion_;
 private:
     std::string modelPath_;
+    std::string shapePath_;
 };
 
 class DynamicObject : public BaseObject

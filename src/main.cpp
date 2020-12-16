@@ -98,6 +98,7 @@ int main()
     //-----------------
     world = new Dynamics(btVector3(0,-10,0));
 
+    /** plane 
     btCollisionShape* planeShape = new btStaticPlaneShape{btVector3{0,1,0},0};
     btTransform planeTrans;
     planeTrans.setIdentity();
@@ -105,6 +106,7 @@ int main()
     btMotionState* motion = new btDefaultMotionState{planeTrans};
     btRigidBody::btRigidBodyConstructionInfo info{0, motion, planeShape, inertia};
     world->addRigidBody(new btRigidBody{info});
+    */
     // Load Textures
     //--------------------------------
     
@@ -175,8 +177,14 @@ int main()
     Shader lampShader("assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
     // After we generate shaders load objects
+    btTransform trans;
+    trans.setIdentity();
+    StaticObject floor{nullptr, manager, 
+        "assets/Models/Playground/hills.obj","assets/Models/Playground/hills_shape.obj",
+        shader, trans};    
+    floor.softInit();
 
-    const int NUMCUBES = 100;
+    const int NUMCUBES = 10;
     DynamicObject* dynamicCubes[NUMCUBES];
     btCollisionShape* cubeShape = new btBoxShape{btVector3{1,1,1}};
     for(int i = 0; i < NUMCUBES; ++i)
@@ -213,6 +221,7 @@ int main()
         dynamicCubes[i]->hardInit(world);
     }
     
+    floor.hardInit(world);
 
 
 //    Model& cube = *manager->get("assets/Models/cube/cube.obj");
@@ -265,6 +274,8 @@ int main()
             dynamicCubes[i]->Draw();
         }
 
+        floor.Draw();
+
         // lamp
         lampShader.use();
         lampShader.setMat4("projection", projection);
@@ -279,7 +290,7 @@ int main()
             cube.Draw(lampShader);
         }
 
-        world->debugDraw(projection, view);
+//        world->debugDraw(projection, view);
 
 		//Handle events
 		glfwSwapBuffers(window);

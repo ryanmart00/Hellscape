@@ -53,9 +53,9 @@ void BaseObject::addChild(BaseObject* child)
 }
 
 StaticObject::StaticObject(BaseObject* parent, AssetManager* manager, 
-    std::string modelPath, Shader& shader, btTransform transform) 
+    std::string modelPath, std::string shapePath, Shader& shader, btTransform transform) 
     : BaseObject{parent, manager}, model_{}, shader_{shader}, rigidBody_{}, 
-    motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath}
+    motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath},shapePath_{shapePath}
 {
 }
 
@@ -82,17 +82,20 @@ void StaticObject::softInit()
         std::cout << "Static Soft-Init" << std::endl;
     #endif 
     manager_->load(modelPath_); 
+    manager_->load(shapePath_); 
 }
 
 void StaticObject::hardInit(Dynamics* world)
 {
     model_ = manager_->get(modelPath_);
+
+    Model* shapeModel = manager_->get(shapePath_);
     
     btCompoundShape* shape = new btCompoundShape{};
     btTransform trans;
     trans.setIdentity();
     trans.setOrigin(btVector3{0,0,0});
-    for(auto i = model_->meshes_.begin(); i != model_->meshes_.end(); ++i)
+    for(auto i = shapeModel->meshes_.begin(); i != shapeModel->meshes_.end(); ++i)
     {
         int numTri = i->indices_.size() / 3;
         int numVert = i->vertices_.size();
@@ -107,6 +110,7 @@ void StaticObject::hardInit(Dynamics* world)
     rigidBody_ = new btRigidBody(info);
 
     world->addRigidBody(rigidBody_);
+    manager_->unload(shapePath_);
 }
 
 DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager, 
