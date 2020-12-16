@@ -93,6 +93,37 @@ private:
     std::string modelPath_;
 };
 
+class DynamicObject : public BaseObject
+{
+public:
+    DynamicObject() = delete;
+    DynamicObject(const StaticObject&) = delete;
+    DynamicObject(BaseObject*, AssetManager*, btCollisionShape*, float, std::string, 
+        Shader&, btTransform); 
+    virtual ~DynamicObject();
+
+    virtual void draw();
+    
+    virtual void update(float);
+    
+    virtual void getWorldTransform(btTransform&);
+
+    virtual void softInit();
+    virtual void hardInit(Dynamics*);
+
+    virtual void softDestruct(Dynamics*) {};
+
+protected:
+    Model* model_;
+    Shader& shader_;
+    btRigidBody* rigidBody_;
+    float mass_;
+    btMotionState* motion_;
+private:
+    std::string modelPath_;
+    btCollisionShape* shape_;
+};
+
 
 
 

@@ -5,9 +5,9 @@
 #include "dynamics.hpp"
 #include <iostream>
 #include <tgmath.h>
+#define STB_IMAGE_IMPLEMENTATION
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,7 +21,6 @@
 #include <btBulletDynamicsCommon.h>
 #include "game_object.hpp"
 
-#define DEBUG
 
 using namespace std;
 
@@ -40,36 +39,6 @@ Dynamics* world;
 
 AssetManager* manager;
 
-btRigidBody* addBox(btVector3 dim, float x, float y, float z, float mass)
-{
-    btTransform trans;
-    trans.setIdentity();
-    trans.setOrigin(btVector3(x,y,z));
-    btBoxShape* box = new btBoxShape(dim);
-    btVector3 inertia(0,0,0);
-    box->calculateLocalInertia(mass, inertia);
-    btMotionState* motion = new btDefaultMotionState(trans);
-    btRigidBody::btRigidBodyConstructionInfo info{mass, motion, box, inertia};
-    btRigidBody* body = new btRigidBody(info);
-    world->addRigidBody(body);
-
-    return body;
-}
-
-void renderBox(Model& cube, btRigidBody* box, Shader& shader)
-{
-    if(box->getCollisionShape()->getShapeType() != BOX_SHAPE_PROXYTYPE)
-    {
-        return;
-    }  
-    btTransform t;
-    box->getMotionState()->getWorldTransform(t);
-    float mat[16];
-    t.getOpenGLMatrix(mat);
-    shader.setMat4("model", glm::make_mat4(mat));
-    cube.Draw(shader);
-}
-
 /**
  * Initializes the GLFW Window and starts up GLAD
  */
@@ -85,11 +54,13 @@ GLFWwindow* initWindow()
 
 	//Initialization of Window
 	//------------------------
-	std::cout << "Initializing Window..." << std::endl;
+	#ifdef DEBUG
+        std::cout << "Initializing Window..." << std::endl;
+    #endif
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "MyWindow", NULL, NULL);
 	if (window == NULL)
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
+        std::cerr << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
         std::exit(1);
 	}
@@ -97,7 +68,7 @@ GLFWwindow* initWindow()
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
 		std::exit(1);
 	}   
 
@@ -109,7 +80,9 @@ GLFWwindow* initWindow()
 
 	int numAttr;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
-	std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
+	#ifdef DEBUG 
+        std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
+    #endif
     return window;
 }
 
@@ -120,25 +93,18 @@ int main()
     
     //load models
     manager = new AssetManager{};
-//    manager->load("assets/Models/Island/object.dae");
-//    manager->load("assets/Models/cube/cube.obj");
-    
 
     //Initialize Bullet
     //-----------------
     world = new Dynamics(btVector3(0,-10,0));
-    
-    btTransform trans;
-    trans.setIdentity();
-    trans.setOrigin(btVector3(0,0,0));
-    btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(0,1,0), 0);
-    btMotionState* motion = new btDefaultMotionState(trans);
-    btRigidBody::btRigidBodyConstructionInfo info{0.0, motion, plane};
-    btRigidBody* body = new btRigidBody(info);
-    world->addRigidBody(body);
 
-    addBox(btVector3(1,1,1), 0, 20, 0, 1.0);
-
+    btCollisionShape* planeShape = new btStaticPlaneShape{btVector3{0,1,0},0};
+    btTransform planeTrans;
+    planeTrans.setIdentity();
+    btVector3 inertia{};
+    btMotionState* motion = new btDefaultMotionState{planeTrans};
+    btRigidBody::btRigidBodyConstructionInfo info{0, motion, planeShape, inertia};
+    world->addRigidBody(new btRigidBody{info});
     // Load Textures
     //--------------------------------
     
@@ -209,10 +175,19 @@ int main()
     Shader lampShader("assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
     // After we generate shaders load objects
-    btTransform islandOrigin;
-    islandOrigin.setIdentity();
-    StaticObject myModel(nullptr, manager, "assets/Models/Island/object.dae", 
-        shader, islandOrigin);    
+
+    const int NUMCUBES = 100;
+    DynamicObject* dynamicCubes[NUMCUBES];
+    btCollisionShape* cubeShape = new btBoxShape{btVector3{1,1,1}};
+    for(int i = 0; i < NUMCUBES; ++i)
+    {
+        btTransform trans;
+        trans.setIdentity();
+        trans.setOrigin(btVector3{0, 10*i, 0});
+        dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 10,
+            "assets/Models/cube/cube.obj", shader, trans};    
+        dynamicCubes[i]->softInit();
+    }
     glEnable(GL_DEPTH_TEST);
 
 	//Generate a camera
@@ -233,15 +208,12 @@ int main()
 //        glm::vec3(-1.3f,  1.0f, -1.5f)
 //    };    
 
+    for(int i = 0; i < NUMCUBES; ++i)
+    {
+        dynamicCubes[i]->hardInit(world);
+    }
+    
 
-//    Model& myModel = *manager->get("assets/Models/Island/object.dae");
-
-//    Model myModel{"assets/Models/Island/object.dae"};
-//    myModel.initializeGL();
-
-    myModel.hardInit(world);
-
-//    std::cout << myModel.texturesLoaded_.size() << std::endl;
 
 //    Model& cube = *manager->get("assets/Models/cube/cube.obj");
     Model cube{"assets/Models/cube/cube.obj"};
@@ -250,8 +222,6 @@ int main()
     float dt = 0.0f;
     float lastFrame = 0.0f;
 
-//    std::cout << "Snake Thing: " << std::endl << myModel;
-//    std::cout << "Cube: " << std::endl << cube;
 
 	//Main Loop
 	//---------
@@ -289,29 +259,11 @@ int main()
 		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
         shader.setVec3("viewPos", cam->position_);
-        
 
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0,-50,0));
-        model = glm::rotate(model, -glm::pi<float>()/2, glm::vec3(1,0,0));
-        shader.setMat4("model", model);
-        myModel.Draw();
-
-        for (auto i = world->bodies_.begin(); i != world->bodies_.end(); ++i)
+        for(int i = 0; i < NUMCUBES; i++)
         {
-            renderBox(cube, *i, shader);
+            dynamicCubes[i]->Draw();
         }
-		
-//        for (unsigned int i = 0; i < 10; i++)
-//        {
-//            glm::mat4 model{1.0f};
-//            model = glm::translate(model, cubePositions[i]);
-//            float angle = 20.0f * i;
-//            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f,0.3f, 0.5f));
-//            shader.setMat4("model", model);
-//            cube.Draw(shader);
-//        }
 
         // lamp
         lampShader.use();
@@ -335,7 +287,9 @@ int main()
         
 	}
 	
-	std::cout << "Closing Window" << std::endl;
+	#ifdef DEBUG 
+        std::cout << "Closing Window" << std::endl;
+    #endif
 
     delete cam;
     delete world;
@@ -449,7 +403,7 @@ void loadTexture(unsigned int& texture, const char* file, bool hasAlpha, std::mu
 	}
 	else
 	{
-		std::cout << "Failed to load texture" << std::endl;
+		std::cerr << "Failed to load texture" << std::endl;
         std::exit(1);
 	}
     glmutex.unlock();

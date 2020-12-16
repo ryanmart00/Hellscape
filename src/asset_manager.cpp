@@ -22,17 +22,14 @@ AssetManager::~AssetManager()
 
 Model* AssetManager::get(const std::string& file) 
 {
-    std::cout << "Getting " << file << std::endl;
     auto i = models_.find(file);
     if (i == models_.end())
     {
         // If we have yet to finish loading the models
-        std::cout << "Not in models_: " << file << std::endl;
         auto j = futures_.find(file);
         if (j == futures_.end())
         {
             // We still need to load it
-            std::cout << "Not in futures_: " << file << std::endl;
             Model* model = new Model(file);
             model->initializeGL();
             ModelCount mc{1, model};
@@ -56,7 +53,6 @@ Model* AssetManager::get(const std::string& file)
     }
     else
     {
-        std::cout << "Already loaded" << file << std::endl;
         ModelCount& mc = models_.at(file);
         mc.count_++;
         return mc.model_;
@@ -74,9 +70,13 @@ void AssetManager::load(const std::string& file)
     {
         futures_[file] = std::async(std::launch::async, [file]
         {
-            std::cout << "Loading " << file << std::endl;
+            #ifdef DEBUG
+                std::cout << "Loading " << file << std::endl;
+            #endif
             Model* model = new Model(file);
-            std::cout << "Loading complete for " << file << std::endl;
+            #ifdef DEBUG
+                std::cout << "Loading complete for " << file << std::endl;
+            #endif 
             return model;
         });
     }

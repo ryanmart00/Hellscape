@@ -5,8 +5,6 @@ project(Hellscape)
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
-
-
 #include header files
 include_directories(include)
 
@@ -74,8 +72,16 @@ link_directories(${PROJECT_BINARY_DIR}/libs/glfw/src)
 #set SOURCES to all files in src ending in .cpp
 file(GLOB SOURCES "src/*.c*")
 
+
 # add the executable
 add_executable(Hellscape ${SOURCES})
+
+option(DEBUG "Will print Debug information to std out" OFF)
+if(${DEBUG})
+    message("Compiling with debug info")
+    set_target_properties(Hellscape PROPERTIES COMPILE_DEFINITIONS "DEBUG")
+endif(${DEBUG})
+
 target_link_libraries(Hellscape 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 

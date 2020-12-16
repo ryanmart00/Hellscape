@@ -78,6 +78,9 @@ void StaticObject::getWorldTransform(btTransform& trans)
 
 void StaticObject::softInit()
 {
+    #ifdef DEBUG
+        std::cout << "Static Soft-Init" << std::endl;
+    #endif 
     manager_->load(modelPath_); 
 }
 
@@ -94,13 +97,62 @@ void StaticObject::hardInit(Dynamics* world)
         int numTri = i->indices_.size() / 3;
         int numVert = i->vertices_.size();
         btTriangleIndexVertexArray* array = new btTriangleIndexVertexArray{
-            numTri, (int*) &i->indices_[0], sizeof(unsigned int),
+            numTri, (int*) &i->indices_[0], 3*sizeof(unsigned int),
             numVert, (btScalar*) &i->vertices_[0].Position, sizeof(Vertex)};
-        btTriangleMeshShape* mesh = new btBvhTriangleMeshShape{array, true}; 
+        btTriangleMeshShape* mesh = new btBvhTriangleMeshShape{array, true};
         shape->addChildShape(trans, mesh);
     }
     btVector3 inertia{0,0,0};
     btRigidBody::btRigidBodyConstructionInfo info{0, motion_, shape, inertia};
+    rigidBody_ = new btRigidBody(info);
+
+    world->addRigidBody(rigidBody_);
+}
+
+DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager, 
+    btCollisionShape* shape, float mass, std::string modelPath, 
+    Shader& shader, btTransform transform) 
+    : BaseObject{parent, manager}, model_{}, shader_{shader}, rigidBody_{},
+    mass_{mass}, shape_{shape}, 
+    motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath}
+{
+}
+
+DynamicObject::~DynamicObject()
+{
+    delete shape_;
+}
+
+void DynamicObject::draw()
+{
+    shader_.setMat4("model", convertWorldTransform());
+    model_->Draw(shader_);
+} 
+
+void DynamicObject::update(float)
+{
+}
+
+void DynamicObject::getWorldTransform(btTransform& trans)
+{
+    motion_->getWorldTransform(trans);
+}
+
+void DynamicObject::softInit()
+{
+    #ifdef DEBUG
+        std::cout << "Dynamic Soft-Init" << std::endl;
+    #endif 
+    manager_->load(modelPath_); 
+}
+
+void DynamicObject::hardInit(Dynamics* world)
+{
+    model_ = manager_->get(modelPath_);
+    
+    btVector3 inertia{0,0,0};
+    shape_->calculateLocalInertia(mass_, inertia);
+    btRigidBody::btRigidBodyConstructionInfo info{mass_, motion_, shape_, inertia};
     rigidBody_ = new btRigidBody(info);
 
     world->addRigidBody(rigidBody_);
