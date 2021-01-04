@@ -29,8 +29,9 @@ public:
     void debugDraw(glm::mat4 proj, glm::mat4 view);
 
     std::vector<btRigidBody*> bodies_;
-private:
+
     btDynamicsWorld* world_;
+private:
     btDispatcher* dispatcher_;
     btBroadphaseInterface* broadphase_;
     btConstraintSolver* solver_;

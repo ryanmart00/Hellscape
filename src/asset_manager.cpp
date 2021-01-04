@@ -6,16 +6,18 @@ AssetManager::~AssetManager()
     auto i = futures_.begin();
     while(i != futures_.end())
     {
-        delete i->second.get();
+        Model* m = i->second.get();
         i = futures_.erase(i);
+        delete m;
     }
     
     // clear out loaded models
     auto j = models_.begin();
     while(j != models_.end())
     {
-        delete j->second.model_;
+        Model* m = j->second.model_;
         j = models_.erase(j);
+        delete m;
     }
     
 }
@@ -39,12 +41,18 @@ Model* AssetManager::get(const std::string& file)
         else
         {
             // We need to wait for the future
-            std::cout << "Wait for future: " << j->second.valid() << std::endl;
+            #ifdef DEBUG
+                std::cerr << "Wait for future: " << j->second.valid() << std::endl;
+            #endif
             j->second.wait();
-            std::cout << "Waiting complete: " << file << std::endl;
+            #ifdef DEBUG
+                std::cerr << "Waiting complete: " << file << std::endl;
+            #endif
             Model* model = j->second.get();
             model->initializeGL();
-            std::cout << "Retrieved model from future: " << file << std::endl;
+            #ifdef DEBUG
+                std::cerr << "Retrieved model from future: " << file << std::endl;
+            #endif 
             j = futures_.erase(j);
             ModelCount mc{1, model};
             models_.emplace(file, mc);
@@ -87,8 +95,12 @@ void AssetManager::unload(const std::string& file)
     auto i = models_.find(file);
     if(i != models_.end())
     {
-        delete i->second.model_;
-        models_.erase(i);
+        
+        if (--i->second.count_ == 0)
+        {
+            delete i->second.model_;
+            models_.erase(i);
+        }
     }
     else
     {

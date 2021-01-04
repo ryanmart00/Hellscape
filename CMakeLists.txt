@@ -80,6 +80,7 @@ option(DEBUG "Will print Debug information to std out" OFF)
 if(${DEBUG})
     message("Compiling with debug info")
     set_target_properties(Hellscape PROPERTIES COMPILE_DEFINITIONS "DEBUG")
+    target_compile_options(Hellscape PRIVATE -g)
 endif(${DEBUG})
 
 target_link_libraries(Hellscape 

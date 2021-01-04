@@ -19,6 +19,7 @@ class Model
 public:
     Model() = delete;
     Model(std::string path);
+    ~Model();
 
     void initializeGL();
     

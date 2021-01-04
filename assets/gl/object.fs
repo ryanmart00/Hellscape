@@ -22,7 +22,9 @@ struct DirLight
     vec3 specular;
 };
 
-uniform DirLight dirLight;
+#define DIR_LIGHTS 1
+
+uniform DirLight directionalLights[DIR_LIGHTS];
 
 struct PointLight
 {
@@ -37,9 +39,9 @@ struct PointLight
     vec3 specular;
 
 };
-#define LIGHTS 4
+#define POINT_LIGHTS 4
 
-uniform PointLight pointLights[LIGHTS];
+uniform PointLight pointLights[POINT_LIGHTS];
 
 out vec4 FragColor;
 
@@ -75,18 +77,24 @@ void main()
     vec3 viewDir = normalize(viewPos - FragPos);
 
     // Directional Lighting
-    vec3 result = CalcDirLight(dirLight, norm, viewDir);
-
-    // Point Lights
-    for(int i = 0; i < LIGHTS; i++)
-    {
-        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
-    }
-    
-    
+    vec3 result = vec3(0.0,0.0,0.0);
     if (onEdge(norm, viewDir))
     {
         result = vec3(1.0, 0.5, 0.5);
+    }
+    else
+    {
+        // Directional Lights
+        for(int i = 0; i < DIR_LIGHTS; i++)
+        {
+            result += CalcDirLight(directionalLights[i], norm, viewDir);
+        }
+
+        // Point Lights
+        for(int i = 0; i < POINT_LIGHTS; i++)
+        {
+            result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+        }
     }
     
     FragColor = vec4(result, 1.0);

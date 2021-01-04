@@ -2,6 +2,7 @@
 #include <stb_image.h>
 
 
+
 Model::Model(std::string path)
 {
     Assimp::Importer import;
@@ -16,7 +17,27 @@ Model::Model(std::string path)
 
     processNode(scene->mRootNode, scene);
     // We initialize the rest when we have a GL context
-//    initializeGL();
+    import.FreeScene();
+}
+
+Model::~Model()
+{
+    for(auto i = meshes_.begin(); i != meshes_.end(); i++)
+    {
+        glDeleteVertexArrays(1, &(i->VAO_));
+        glDeleteBuffers(1, &(i->VBO_));
+        glDeleteBuffers(1, &(i->EBO_));
+    }
+
+    auto i = texturesLoaded_.begin();
+    while(i != texturesLoaded_.end())
+    {
+        Texture* t = *i;
+        i = texturesLoaded_.erase(i);
+        glDeleteTextures(1, &t->id);
+        delete t;
+    }
+    
 }
 
 void Model::initializeGL()

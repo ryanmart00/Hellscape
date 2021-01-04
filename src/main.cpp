@@ -20,24 +20,22 @@
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include "game_object.hpp"
+#include "player.hpp"
+#include "constants.hpp"
+#include "light.hpp"
 
 
-using namespace std;
-
-void processInput(GLFWwindow *window, Camera& cam, float dt);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void loadTexture(unsigned int& texture, const char* file, bool hasAlpha);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-Camera* cam;
+Player* player;
 
 Dynamics* world;
 
 AssetManager* manager;
+
 
 /**
  * Initializes the GLFW Window and starts up GLAD
@@ -57,7 +55,7 @@ GLFWwindow* initWindow()
 	#ifdef DEBUG
         std::cout << "Initializing Window..." << std::endl;
     #endif
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "MyWindow", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hellscape", NULL, NULL);
 	if (window == NULL)
 	{
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -74,13 +72,11 @@ GLFWwindow* initWindow()
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
 
 
+	#ifdef DEBUG 
 	int numAttr;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
-	#ifdef DEBUG 
         std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
     #endif
     return window;
@@ -91,98 +87,96 @@ int main()
     //GLFW    
     GLFWwindow* window = initWindow();
     
-    //load models
+    //model loader
     manager = new AssetManager{};
 
     //Initialize Bullet
     //-----------------
     world = new Dynamics(btVector3(0,-10,0));
 
-    /** plane 
-    btCollisionShape* planeShape = new btStaticPlaneShape{btVector3{0,1,0},0};
-    btTransform planeTrans;
-    planeTrans.setIdentity();
-    btVector3 inertia{};
-    btMotionState* motion = new btDefaultMotionState{planeTrans};
-    btRigidBody::btRigidBodyConstructionInfo info{0, motion, planeShape, inertia};
-    world->addRigidBody(new btRigidBody{info});
-    */
-    // Load Textures
-    //--------------------------------
-    
-//    unsigned int diffuseTexture;
-//    loadTexture(diffuseTexture, "assets/Textures/container2.png", true);
-
-//    unsigned int specularTexture;
-//    loadTexture(specularTexture, "assets/Textures/container2_specular.png", true);
-
+    std::vector<BaseObject*> objects;
 
 	//Generation of the Shader Program
 	//--------------------------------
 	
-
-    // positions of the point lights
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3( 0.7f,  0.2f,  2.0f),
-        glm::vec3( 2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f,  2.0f, -12.0f),
-        glm::vec3( 0.0f,  0.0f, -3.0f)
-    };
-	
 	Shader shader("assets/gl/object.vs", "assets/gl/object.fs", "assets/gl/object.gs");
     shader.use();
     // directional light
-    shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-    shader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-    shader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-    shader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-    // point light 1
-    shader.setVec3("pointLights[0].position", pointLightPositions[0]);
-    shader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-    shader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-    shader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-    shader.setFloat("pointLights[0].constant", 1.0f);
-    shader.setFloat("pointLights[0].linear", 0.09);
-    shader.setFloat("pointLights[0].quadratic", 0.032);
-    // point light 2
-    shader.setVec3("pointLights[1].position", pointLightPositions[1]);
-    shader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-    shader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-    shader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-    shader.setFloat("pointLights[1].constant", 1.0f);
-    shader.setFloat("pointLights[1].linear", 0.09);
-    shader.setFloat("pointLights[1].quadratic", 0.032);
-    // point light 3
-    shader.setVec3("pointLights[2].position", pointLightPositions[2]);
-    shader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-    shader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-    shader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-    shader.setFloat("pointLights[2].constant", 1.0f);
-    shader.setFloat("pointLights[2].linear", 0.09);
-    shader.setFloat("pointLights[2].quadratic", 0.032);
-    // point light 4
-    shader.setVec3("pointLights[3].position", pointLightPositions[3]);
-    shader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-    shader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-    shader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-    shader.setFloat("pointLights[3].constant", 1.0f);
-    shader.setFloat("pointLights[3].linear", 0.09);
-    shader.setFloat("pointLights[3].quadratic", 0.032);
+    DirectionalLight dirlight
+    {
+        glm::vec3{-0.2f, -1.0f, -0.3f}, 
+        glm::vec3{0.05f, 0.05f, 0.05f},
+        glm::vec3{0.4f, 0.4f, 0.4f},
+        glm::vec3{0.5f, 0.5f, 0.5f}
+    };
+    dirlight.assignToShader(shader, 0);
 
-    shader.setFloat("shininess1", 32.0f);
+    // point lights
+    PointLight pointlights[] = 
+    {
+        PointLight
+        {
+            glm::vec3{0.7f, 0.2f, 2.0f},
+            glm::vec3{0.05f, 0.05f, 0.05f},
+            glm::vec3{0.8f, 0.8f, 0.8f},
+            glm::vec3{1.0f, 1.0f, 1.0f},
+            1.0f, 0.09f, 0.032
+        },
+        PointLight
+        {
+            glm::vec3{-4.0f,  2.0f, -12.0f},
+            glm::vec3{0.05f, 0.05f, 0.05f},
+            glm::vec3{0.8f, 0.8f, 0.8f},
+            glm::vec3{1.0f, 1.0f, 1.0f},
+            1.0f, 0.09f, 0.032
+        },
+        PointLight
+        {
+            glm::vec3{0.0f,  0.0f, -3.0f},
+            glm::vec3{0.05f, 0.05f, 0.05f},
+            glm::vec3{0.8f, 0.8f, 0.8f},
+            glm::vec3{1.0f, 1.0f, 1.0f},
+            1.0f, 0.09f, 0.032
+        },
+        PointLight
+        {
+            glm::vec3{2.3f, -3.3f, -4.0f},
+            glm::vec3{0.05f, 0.05f, 0.05f},
+            glm::vec3{0.8f, 0.8f, 0.8f},
+            glm::vec3{1.0f, 1.0f, 1.0f},
+            1.0f, 0.09f, 0.032
+        }
+    };
+
+    for(int i = 0; i < 4; i++)
+    {
+        pointlights[i].assignToShader(shader, i);
+    }
 
     shader.setInt("texture_diffuse1", 0);
     shader.setInt("texture_specular1", 1);
 
+
     Shader lampShader("assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
-    // After we generate shaders load objects
     btTransform trans;
     trans.setIdentity();
-    StaticObject floor{nullptr, manager, 
+    trans.setOrigin(btVector3{10.0f,20.0f,10.0f});
+    player = new Player{manager, trans, glm::vec3{0,0,1}, UP};
+    player->softInit();
+    objects.push_back(player);
+    // Add player's processInputs to the input managers
+    InputManager::objects_[PLAYER_INPUT_INDEX] = player;
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, InputManager::mouseCallback);
+
+    // After we generate shaders load objects
+    StaticObject* floor = new StaticObject{nullptr, manager, 
         "assets/Models/Playground/hills.obj","assets/Models/Playground/hills_shape.obj",
-        shader, trans};    
-    floor.softInit();
+        trans};    
+    floor->softInit();
+    objects.push_back(floor);
 
     const int NUMCUBES = 10;
     DynamicObject* dynamicCubes[NUMCUBES];
@@ -193,44 +187,30 @@ int main()
         trans.setIdentity();
         trans.setOrigin(btVector3{0, 10*i, 0});
         dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 10,
-            "assets/Models/cube/cube.obj", shader, trans};    
+            "assets/Models/cube/cube.obj", trans};    
         dynamicCubes[i]->softInit();
+        objects.push_back(dynamicCubes[i]);
     }
+
+    // Enable depth testing
     glEnable(GL_DEPTH_TEST);
 
-	//Generate a camera
-	cam = new Camera{glm::vec3{0.0f, 0.0f, -10.0f}, glm::vec3{0.0f, 0.0f, 1.0f}, 
-		glm::vec3{0.0f, 1.0f, 0.0f}};
 
-
-//    glm::vec3 cubePositions[] = {
-//        glm::vec3( 0.0f,  0.0f,  0.0f),
-//        glm::vec3( 2.0f,  5.0f, -15.0f),
-//        glm::vec3(-1.5f, -2.2f, -2.5f),
-//        glm::vec3(-3.8f, -2.0f, -12.3f),
-//        glm::vec3( 2.4f, -0.4f, -3.5f),
-//        glm::vec3(-1.7f,  3.0f, -7.5f),
-//        glm::vec3( 1.3f, -2.0f, -2.5f),
-//        glm::vec3( 1.5f,  2.0f, -2.5f),
-//        glm::vec3( 1.5f,  0.2f, -1.5f),
-//        glm::vec3(-1.3f,  1.0f, -1.5f)
-//    };    
-
-    for(int i = 0; i < NUMCUBES; ++i)
+    for(auto i = objects.begin(); i != objects.end(); i++)
     {
-        dynamicCubes[i]->hardInit(world);
+        BaseObject* obj = *i;
+        obj->hardInit(world);
     }
-    
-    floor.hardInit(world);
 
 
-//    Model& cube = *manager->get("assets/Models/cube/cube.obj");
-    Model cube{"assets/Models/cube/cube.obj"};
-    cube.initializeGL();
+    Model& cube = *manager->get("assets/Models/cube/cube.obj");
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
 
+    //projection: generates frustum	
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
+        ((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
 
 	//Main Loop
 	//---------
@@ -244,37 +224,32 @@ int main()
         // bullet physics
         world->stepSimulation(dt);
             
+        // Update objects
+        for(auto i = objects.begin(); i != objects.end(); i++)
+        {
+            (*i)->Update(world, dt);
+        }
         
-		//poll inputs
-		processInput(window, *cam, dt);
-
 
 		//Clear
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//Calculate Transformations
-		//model transformation (to the center of the model)
-
-
 		//Draw
         shader.use();
 		
-		//projection: generates frustum	
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
-			((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
 		//view: the inverse transform of the camera's local transformation
-		glm::mat4 view = cam->view();
+		glm::mat4 view = player->getCameraView();
 		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
-        shader.setVec3("viewPos", cam->position_);
+        shader.setVec3("viewPos", player->getCameraPos());
 
-        for(int i = 0; i < NUMCUBES; i++)
+        // Render the objects
+        for(auto i = objects.begin(); i != objects.end(); i++)
         {
-            dynamicCubes[i]->Draw();
+            (*i)->Draw(shader);
         }
 
-        floor.Draw();
 
         // lamp
         lampShader.use();
@@ -284,30 +259,72 @@ int main()
         for (unsigned int i = 0; i < 4; i++) 
         {
             glm::mat4 model{1.0f};
-            model = glm::translate(model, pointLightPositions[i]);
+            model = glm::translate(model, pointlights[i].position_);
             model = glm::scale(model, glm::vec3{0.2f});
             lampShader.setMat4("model", model);
             cube.Draw(lampShader);
         }
 
-//        world->debugDraw(projection, view);
-
+        #ifdef DEBUG
+            world->debugDraw(projection, view);
+        #endif 
+    
 		//Handle events
 		glfwSwapBuffers(window);
 		glfwPollEvents();    
         
+		//poll inputs
+		InputManager::pollInput(window, dt);
 	}
+
+    player->softDestruct(world);
+    floor->softDestruct(world);
+    for(int i = 0; i < NUMCUBES; i++)
+    {
+        dynamicCubes[i]->softDestruct(world);
+    }
 	
 	#ifdef DEBUG 
-        std::cout << "Closing Window" << std::endl;
+        std::cerr << "Closing Window" << std::endl;
     #endif
 
-    delete cam;
-    delete world;
-    delete manager;
+    objects.clear();
 
+    // delete the world before the collision objects!
+    delete world;
+    #ifdef DEBUG
+        std::cerr << "Successfully deleted world" << std::endl;
+    #endif
+    delete player;
+    #ifdef DEBUG
+        std::cerr << "Successfully deleted player" << std::endl;
+    #endif
+    delete floor;
+    #ifdef DEBUG
+        std::cerr << "Successfully deleted floor" << std::endl;
+    #endif
+    for(int i = 0; i < NUMCUBES; i++)
+    {
+        delete dynamicCubes[i];
+    }
+    #ifdef DEBUG
+        std::cerr << "Successfully deleted all dynamicCubes" << std::endl;
+    #endif
+    delete cubeShape;
+    #ifdef DEBUG
+        std::cerr << "Successfully deleted cube shape" << std::endl;
+    #endif
+    // delete models before the model manager!
+    delete manager;
+    #ifdef DEBUG
+        std::cerr << "Successfully deleted asset manager" << std::endl;
+    #endif
+
+    glfwDestroyWindow(window);
 	glfwTerminate();
-	return 0;
+    #ifdef DEBUG
+        std::cerr << "Successfully destroyed window" << std::endl;
+    #endif
 }
 
 std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
@@ -316,108 +333,8 @@ std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
     return os;
 } 
 
-void processInput(GLFWwindow *window, Camera& cam, float dt)
-{
-	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-        cam.position_ += glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 10.0f;
-	}
-	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-        cam.position_ -= glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 5.0f;
-	}
-	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-        cam.position_ -= cam.getRight() * dt * 7.0f;
-	}
-	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-        cam.position_ += cam.getRight() * dt * 7.0f;
-	}
-    if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS) 
-    {
-        cam.position_ += glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
-    }
-    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
-    {
-        cam.position_ -= glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
-    }
-}
-
 void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-double lastX = 400, lastY = 300;
-bool firstMouse = true;
-
-const glm::vec3 UP{0.0f, 1.0f, 0.0f};
-
-void mouse_callback(GLFWwindow*, double xpos, double ypos)
-{
-    if(firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-    double dx = -xpos + lastX;
-    double dy = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-
-    double sensitivity = 0.005;
-    dx *= sensitivity;
-    dy *= sensitivity;
-
-    cam->rotate(dy, cam->getRight());
-    cam->rotate(dx, UP);
-    
-}
-
-void loadTexture(unsigned int& texture, const char* file, bool hasAlpha, std::mutex& glmutex)
-{
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
-
-    glmutex.lock();
-	glGenTextures(1, &texture);
-
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	// set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	if(data)
-	{
-        if(hasAlpha)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, 
-                GL_UNSIGNED_BYTE, data);
-        }
-        else 
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, 
-                GL_UNSIGNED_BYTE, data);
-        }
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cerr << "Failed to load texture" << std::endl;
-        std::exit(1);
-	}
-    glmutex.unlock();
-
-	stbi_image_free(data);
-}

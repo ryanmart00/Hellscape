@@ -9,6 +9,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
     // setupMesh();
 }
 
+
 void Mesh::setupMesh()
 {
     // Generate our buffers

@@ -12,7 +12,9 @@ BaseObject::BaseObject(BaseObject* parent, AssetManager* manager)
 
 BaseObject::~BaseObject() 
 {
-    std::cerr << "BaseObject Destructor" << std::endl;
+    #ifdef DEBUG
+        std::cerr << "BaseObject Destructor" << std::endl;
+    #endif
     for(auto i = children_.begin(); i != children_.end(); )
     {
         delete *i;
@@ -20,21 +22,21 @@ BaseObject::~BaseObject()
     }
 }
 
-void BaseObject::Draw()
+void BaseObject::Draw(Shader& shader)
 {
-    draw();
+    draw(shader);
     for(auto i = children_.begin(); i != children_.end(); ++i)
     {
-        (*i)->Draw();
+        (*i)->Draw(shader);
     }
 }
 
-void BaseObject::Update(float dt)
+void BaseObject::Update(Dynamics* world, float dt)
 {
-    update(dt);
+    update(world, dt);
     for(auto i = children_.begin(); i != children_.end(); ++i)
     {
-        (*i)->Update(dt);
+        (*i)->Update(world, dt);
     }
 }
 
@@ -53,21 +55,49 @@ void BaseObject::addChild(BaseObject* child)
 }
 
 StaticObject::StaticObject(BaseObject* parent, AssetManager* manager, 
-    std::string modelPath, std::string shapePath, Shader& shader, btTransform transform) 
-    : BaseObject{parent, manager}, model_{}, shader_{shader}, rigidBody_{}, 
-    motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath},shapePath_{shapePath}
+    std::string modelPath, std::string shapePath, btTransform transform) 
+    : BaseObject{parent, manager}, model_{nullptr}, rigidBody_{nullptr}, 
+    motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath},shapePath_{shapePath},
+    tivarr_{nullptr}, shape_{nullptr}, numMeshes_{0}
 {
 }
 
-StaticObject::~StaticObject(){}
-
-void StaticObject::draw()
+StaticObject::~StaticObject()
 {
-    shader_.setMat4("model", convertWorldTransform());
-    model_->Draw(shader_);
+    manager_->unload(modelPath_);
+    if(rigidBody_)
+    {
+        delete rigidBody_;
+    }
+    if (motion_)
+    {
+        delete motion_;
+    }
+    if (shape_)
+    {
+        delete shape_;
+    }
+    if (tivarr_)
+    {
+        delete[] tivarr_;
+    }
+    if (trimesharr_)
+    {
+        for(int i = 0; i < numMeshes_; i++)
+        {
+            delete trimesharr_[i];
+        }
+        delete[] trimesharr_;
+    }
+}
+
+void StaticObject::draw(Shader& shader)
+{
+    shader.setMat4("model", convertWorldTransform());
+    model_->Draw(shader);
 } 
 
-void StaticObject::update(float)
+void StaticObject::update(Dynamics*, float)
 {
 }
 
@@ -78,9 +108,6 @@ void StaticObject::getWorldTransform(btTransform& trans)
 
 void StaticObject::softInit()
 {
-    #ifdef DEBUG
-        std::cout << "Static Soft-Init" << std::endl;
-    #endif 
     manager_->load(modelPath_); 
     manager_->load(shapePath_); 
 }
@@ -90,33 +117,42 @@ void StaticObject::hardInit(Dynamics* world)
     model_ = manager_->get(modelPath_);
 
     Model* shapeModel = manager_->get(shapePath_);
-    
-    btCompoundShape* shape = new btCompoundShape{};
+    shape_ = new btCompoundShape{};
     btTransform trans;
     trans.setIdentity();
     trans.setOrigin(btVector3{0,0,0});
+    numMeshes_ = shapeModel->meshes_.size();
+    tivarr_ = new btTriangleIndexVertexArray[numMeshes_];
+    trimesharr_ = new btTriangleMeshShape*[numMeshes_];
+    int index = 0;
     for(auto i = shapeModel->meshes_.begin(); i != shapeModel->meshes_.end(); ++i)
     {
         int numTri = i->indices_.size() / 3;
         int numVert = i->vertices_.size();
-        btTriangleIndexVertexArray* array = new btTriangleIndexVertexArray{
+        tivarr_[index] = btTriangleIndexVertexArray{
             numTri, (int*) &i->indices_[0], 3*sizeof(unsigned int),
             numVert, (btScalar*) &i->vertices_[0].Position, sizeof(Vertex)};
-        btTriangleMeshShape* mesh = new btBvhTriangleMeshShape{array, true};
-        shape->addChildShape(trans, mesh);
+        trimesharr_[index] = new btBvhTriangleMeshShape{&tivarr_[index], true};
+        shape_->addChildShape(trans, trimesharr_[index]);
+        index++;
     }
     btVector3 inertia{0,0,0};
-    btRigidBody::btRigidBodyConstructionInfo info{0, motion_, shape, inertia};
+    btRigidBody::btRigidBodyConstructionInfo info{0, motion_, shape_, inertia};
     rigidBody_ = new btRigidBody(info);
 
     world->addRigidBody(rigidBody_);
     manager_->unload(shapePath_);
 }
 
+void StaticObject::softDestruct(Dynamics* world)
+{
+    world->removeRigidBody(rigidBody_);
+}
+
 DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager, 
     btCollisionShape* shape, float mass, std::string modelPath, 
-    Shader& shader, btTransform transform) 
-    : BaseObject{parent, manager}, model_{}, shader_{shader}, rigidBody_{},
+    btTransform transform) 
+    : BaseObject{parent, manager}, model_{nullptr}, rigidBody_{nullptr},
     mass_{mass}, shape_{shape}, 
     motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath}
 {
@@ -124,16 +160,24 @@ DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager,
 
 DynamicObject::~DynamicObject()
 {
-    delete shape_;
+    manager_->unload(modelPath_);
+    if(rigidBody_)
+    {
+        delete rigidBody_;
+    }
+    if (motion_)
+    {
+        delete motion_;
+    }
 }
 
-void DynamicObject::draw()
+void DynamicObject::draw(Shader& shader)
 {
-    shader_.setMat4("model", convertWorldTransform());
-    model_->Draw(shader_);
+    shader.setMat4("model", convertWorldTransform());
+    model_->Draw(shader);
 } 
 
-void DynamicObject::update(float)
+void DynamicObject::update(Dynamics*, float)
 {
 }
 
@@ -144,9 +188,6 @@ void DynamicObject::getWorldTransform(btTransform& trans)
 
 void DynamicObject::softInit()
 {
-    #ifdef DEBUG
-        std::cout << "Dynamic Soft-Init" << std::endl;
-    #endif 
     manager_->load(modelPath_); 
 }
 
@@ -162,4 +203,8 @@ void DynamicObject::hardInit(Dynamics* world)
     world->addRigidBody(rigidBody_);
 }
 
+void DynamicObject::softDestruct(Dynamics* world)
+{
+    world->removeRigidBody(rigidBody_);
+}
 

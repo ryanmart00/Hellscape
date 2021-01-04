@@ -7,6 +7,7 @@
 #include <future>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "constants.hpp"
 
 class AssetManager
 {
@@ -79,4 +80,44 @@ private:
 
     std::unordered_map<std::string, std::future<Model*>, MyHash> futures_;
 };
+
+    /** InputManager Details
+     *  Add to this namespace for each input object, 
+     *  - a pointer to the object in objects_
+     *  - a pointer to the mouse callback in mouseCallbacks_
+     *  - a pointer to the inputPoller in inputPollers_
+     *      Input pollers 
+     */
+namespace InputManager
+{
+    class Input
+    {
+    public:
+        virtual void mouseCallback(GLFWwindow*, double, double) = 0;
+        virtual void pollInput(GLFWwindow*, float) = 0;
+    };
+
+    static int currentIndex = 0;
+    static Input* objects_[NUM_INPUT_MANAGERS];    
+
+    static void mouseCallback(GLFWwindow* window, double X, double Y)
+    {
+        if(objects_[currentIndex])
+        {
+            objects_[currentIndex]->mouseCallback(window, X, Y);
+        }
+    }
+
+    static void pollInput(GLFWwindow* window, float dt)
+    {
+        
+        if(objects_[currentIndex])
+        {
+            objects_[currentIndex]->pollInput(window,dt);
+        }
+    }
+
+    
+};
+
 #endif

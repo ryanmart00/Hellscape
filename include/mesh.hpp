@@ -66,7 +66,6 @@ public:
      */
     void setupMesh();
     
-private:
     unsigned int VAO_, VBO_, EBO_;
 
 
