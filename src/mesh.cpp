@@ -55,7 +55,7 @@ void Mesh::Draw(Shader& shader)
     // bind the textures
     for(unsigned int i = 0; i < textures_.size(); i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i);
+        glActiveTexture(GL_TEXTURE0 + i + NUM_SHADOW_MAPS);
         std::string number;
         std::string name = textures_[i]->type;
         if(name == "texture_diffuse")
@@ -68,7 +68,7 @@ void Mesh::Draw(Shader& shader)
             number = std::to_string(specularNr);
             specularNr++;
         }
-        shader.setFloat(("material." + name + number).c_str(), i);
+        shader.setInt(("material." + name + number).c_str(), i + NUM_SHADOW_MAPS);
         glBindTexture(GL_TEXTURE_2D, textures_[i]->id);
     }
     shader.setFloat("material.shininess", shininess_);

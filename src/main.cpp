@@ -25,16 +25,49 @@
 #include "light.hpp"
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 
 Player* player;
+
+glm::vec3 getCenter()
+{
+    btTransform trans;
+    player->getWorldTransform(trans);
+    return convert(trans.getOrigin());
+}
 
 Dynamics* world;
 
 AssetManager* manager;
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
 
 
 /**
@@ -95,28 +128,33 @@ int main()
     world = new Dynamics(btVector3(0,-10,0));
 
     std::vector<BaseObject*> objects;
+    std::vector<BaseLight*> shadow_casters;
 
 	//Generation of the Shader Program
 	//--------------------------------
 	
 	Shader shader("assets/gl/object.vs", "assets/gl/object.fs", "assets/gl/object.gs");
+    Shader shadowShader("assets/gl/shadow.vs", "assets/gl/shadow.fs");
     shader.use();
     // directional light
     DirectionalLight dirlight
     {
         glm::vec3{-0.2f, -1.0f, -0.3f}, 
+        &getCenter,
         glm::vec3{0.05f, 0.05f, 0.05f},
         glm::vec3{0.4f, 0.4f, 0.4f},
         glm::vec3{0.5f, 0.5f, 0.5f}
     };
     dirlight.assignToShader(shader, 0);
+    dirlight.assignToShadowShader(shadowShader);
+    shadow_casters.push_back(&dirlight);
 
     // point lights
     PointLight pointlights[] = 
     {
         PointLight
         {
-            glm::vec3{0.7f, 0.2f, 2.0f},
+            glm::vec3{0.7f, 30.2f, 2.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
@@ -124,7 +162,7 @@ int main()
         },
         PointLight
         {
-            glm::vec3{-4.0f,  2.0f, -12.0f},
+            glm::vec3{-4.0f,  32.0f, -12.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
@@ -132,7 +170,7 @@ int main()
         },
         PointLight
         {
-            glm::vec3{0.0f,  0.0f, -3.0f},
+            glm::vec3{0.0f,  30.0f, -3.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
@@ -140,7 +178,7 @@ int main()
         },
         PointLight
         {
-            glm::vec3{2.3f, -3.3f, -4.0f},
+            glm::vec3{2.3f, 27.3f, -4.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
@@ -157,6 +195,7 @@ int main()
     shader.setInt("texture_specular1", 1);
 
 
+    Shader debugDepthQuad("assets/gl/debug_quad.vs", "assets/gl/debug_quad.fs");
     Shader lampShader("assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
     btTransform trans;
@@ -212,6 +251,9 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
         ((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
 
+    debugDepthQuad.use();
+    debugDepthQuad.setInt("depthMap", 0);
+
 	//Main Loop
 	//---------
 	while(!glfwWindowShouldClose(window))
@@ -235,6 +277,15 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Compute shadows
+        for(auto i = shadow_casters.begin(); i != shadow_casters.end(); i++)
+        {
+            (*i)->renderShadows(shadowShader, objects);
+        }
+
+		glViewport(0,0, SCR_WIDTH, SCR_HEIGHT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		//Draw
         shader.use();
 		
@@ -249,6 +300,14 @@ int main()
         {
             (*i)->Draw(shader);
         }
+
+        debugDepthQuad.use();
+        debugDepthQuad.setFloat("near_plane", NEAR_SHADOW_CLIPPING_PLANE);
+        debugDepthQuad.setFloat("far_plane", FAR_SHADOW_CLIPPING_PLANE);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, shadow_casters.front()->depthMap_);
+//        renderQuad();
+
 
 
         // lamp

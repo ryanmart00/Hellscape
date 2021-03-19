@@ -2,7 +2,10 @@
 #define LIGHT_HPP_INCLUDED
 
 #include <glm/glm.hpp>
+#include <vector>
 #include "shader.hpp"
+#include "constants.hpp"
+#include "game_object.hpp"
 class BaseLight
 {
 public:
@@ -12,18 +15,25 @@ public:
      *  Assigns this light to shader.
      */
     virtual void assignToShader(Shader& shader, unsigned int num) = 0;
+    virtual void assignToShadowShader(Shader& shader) = 0;
+
+    virtual void renderShadows(Shader& shader, std::vector<BaseObject*> renderables) = 0;
+    unsigned int depthMap_;
     
 protected:
     glm::vec3 ambient_;
     glm::vec3 diffuse_;
     glm::vec3 specular_; 
+
+    glm::mat4 projection_;
+    unsigned int depthMapFBO_;
 };
 
 class DirectionalLight : public BaseLight
 {
 public:
-    DirectionalLight(glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, 
-        glm::vec3 specular);
+    DirectionalLight(glm::vec3 direction, glm::vec3 (*getCenter)(void), glm::vec3 ambient, 
+            glm::vec3 diffuse, glm::vec3 specular);
 
     /**
      *  Assigns this light to shader.
@@ -36,8 +46,14 @@ public:
      */
     virtual void assignToShader(Shader& shader, unsigned int num);
 
+    virtual void assignToShadowShader(Shader& shader);
+
+    virtual void renderShadows(Shader& shader, std::vector<BaseObject*> renderables);
+
+
 protected:
     glm::vec3 direction_;
+    glm::vec3 (*getCenter_)(void);
 
 };
 
@@ -61,6 +77,9 @@ public:
      *      - quadratic
      */
     virtual void assignToShader(Shader& shader, unsigned int num);
+    virtual void assignToShadowShader(Shader& shader);
+
+    virtual void renderShadows(Shader& shader, std::vector<BaseObject*> renderables);
 
     glm::vec3 position_;
 
@@ -70,17 +89,4 @@ protected:
     float quadFalloff_;
 
 };
-
-class DirectionalShadowLight : public DirectionalLight
-{
-private:
-    unsigned int depthMapFBO;
-    unsigned int depthMap;
-};
-
-class PointShadowLight : public PointLight
-{
-
-};
-
 #endif

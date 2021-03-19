@@ -2,7 +2,7 @@
 
 Player:: Player(AssetManager* manager, btTransform transform, 
     glm::vec3 camDirection, glm::vec3 camUp)
-    : DynamicObject{nullptr, manager, new btCapsuleShape{0.25f,1.0f},
+    : DynamicObject{nullptr, manager, new btCapsuleShape{PLAYER_RADIUS,PLAYER_HIEGHT},
     PLAYER_MASS, PLAYER_MODEL_PATH, transform}
 {
     cam_ = glm::quatLookAt(camDirection, camUp);

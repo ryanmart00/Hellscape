@@ -5,6 +5,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "shader.hpp"
+#include "constants.hpp"
 
 struct Vertex
 {
