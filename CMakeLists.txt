@@ -106,7 +106,7 @@ if(${ZIP} AND WIN32)
 		POST_BUILD
 		COMMAND zip 
 		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Win64/Hellscape.zip 
-		Hellscape.exe libgcc_s_seh-1.dll libstdc++-6.dll
+		Hellscape.exe msys-2.0.dll msys-gcc_s-seh-1.dll msys-stdc++-6.dll
 		libwinpthread-1.dll zlib1.dll assets)
 elseif(${ZIP})
     message("Zipping for linux")
