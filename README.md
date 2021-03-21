@@ -18,7 +18,7 @@ On Linux:
 
 On Windows:
 - Install MSYS2 (for example): https://www.msys2.org/
-- You'll need cmake: pacman -Syu cmake
+- You'll need the following packages: pacman -S cmake make gcc 
 - Run cmake "/path/to/Hellscape/" -DCMAKE_SYSTEM_NAME=Windows
 - run make
 
