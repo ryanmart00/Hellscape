@@ -8,6 +8,21 @@
 ## Or:
 Build from source with cmake
 
+### Instructions:
+- clone repo with --recurse-submodules to pull required libraries
+
+On Linux:
+- make a bin 
+- run cmake /path/to/Hellscape/
+- run make
+
+On Windows:
+- Install MSYS2 (for example): https://www.msys2.org/
+- You'll need cmake: pacman -Syu cmake
+- Run cmake "/path/to/Hellscape/" -DCMAKE_SYSTEM_NAME=Windows
+- run make
+
+
 ## Concept Map:
 <a id="raw-url" href="https://miro.com/app/board/o9J_knGxncc=/"> Miro</a>
 
