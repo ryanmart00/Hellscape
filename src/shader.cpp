@@ -1,7 +1,19 @@
 #include "shader.hpp"
+#include "constants.hpp"
+#include <string>
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath, 
-    const char* geometryPath)
+void replaceAll(std::string& data, std::string search, std::string replace)
+{
+    size_t pos = data.find(search);
+    while(pos != std::string::npos)
+    {
+        data.replace(pos, search.size(), replace);
+        pos = data.find(search, pos + replace.size());
+    }
+}
+
+Shader::Shader(const int numDirLights, const int numPointLights,
+        const char* vertexPath, const char* fragmentPath, const char* geometryPath)
 {
     // 1. get the vertex/fragment shader source code
     std::string vStr, fStr, gStr;
@@ -49,6 +61,12 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
         std::cout << "ERROR: Shader file(s) were not successfully read" << std::endl;
         std::exit(1);
     }
+    replaceAll(vStr, "@NUM_DIR_LIGHTS@", std::to_string(numDirLights));
+    replaceAll(vStr, "@NUM_POINT_LIGHTS@", std::to_string(numPointLights));
+    replaceAll(fStr, "@NUM_DIR_LIGHTS@", std::to_string(numDirLights));
+    replaceAll(fStr, "@NUM_POINT_LIGHTS@", std::to_string(numPointLights));
+    replaceAll(gStr, "@NUM_DIR_LIGHTS@", std::to_string(numDirLights));
+    replaceAll(gStr, "@NUM_POINT_LIGHTS@", std::to_string(numPointLights));
     const char* vertexCode = vStr.c_str();
     const char* fragmentCode = fStr.c_str();
     const char* geometryCode = gStr.c_str();

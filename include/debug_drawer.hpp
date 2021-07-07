@@ -11,7 +11,7 @@ class DebugDrawer : public btIDebugDraw {
 public:
     GLuint VBO, VAO;
     DebugDrawer()
-        : m{0}, shader{"assets/gl/debug.vs","assets/gl/debug.fs"}
+        : m{0}, shader{0,0,"assets/gl/debug.vs","assets/gl/debug.fs"}
     {
     }
 

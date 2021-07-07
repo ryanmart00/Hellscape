@@ -4,11 +4,13 @@
 #include "glm/ext/quaternion_common.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/integer.hpp"
+#include "shader.hpp"
+#include <string>
 #include <vector>
 
 
 BaseLight::BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) 
-    : ambient_{ambient}, diffuse_{diffuse}, specular_{specular}
+    : ambient_{ambient}, diffuse_{diffuse}, specular_{specular} 
 {
     glGenFramebuffers(1, &depthMapFBO_);
 
@@ -18,8 +20,10 @@ BaseLight::BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
             GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO_);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap_, 0);
@@ -30,15 +34,18 @@ BaseLight::BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
 
 DirectionalLight::DirectionalLight(glm::vec3 direction, glm::vec3 (*getCenter)(void), glm::vec3 ambient, glm::vec3 diffuse,
     glm::vec3 specular)
-    : BaseLight{ambient, diffuse, specular}, direction_{direction}, getCenter_{getCenter}
+    : BaseLight{ambient, diffuse, specular}, 
+    shadowShader_{0,0,"assets/gl/dirshadow.vs", "assets/gl/dirshadow.fs"},
+    direction_{direction}, getCenter_{getCenter}
 {
     // Projection is determined by constants in constants.hpp
     projection_ = glm::ortho(-RIGHT_SHADOW_CLIPPING_PLANE, RIGHT_SHADOW_CLIPPING_PLANE,
             -UP_SHADOW_CLIPPING_PLANE, UP_SHADOW_CLIPPING_PLANE, NEAR_SHADOW_CLIPPING_PLANE,
             FAR_SHADOW_CLIPPING_PLANE);
+    shadowShader_.setMat4("projection", projection_);
 }
 
-void DirectionalLight::assignToShader(Shader& shader, unsigned int num)
+void DirectionalLight::updateShader(Shader& shader, unsigned int num)
 {
     shader.use();
     std::string name = "directionalLights[";
@@ -49,29 +56,36 @@ void DirectionalLight::assignToShader(Shader& shader, unsigned int num)
     shader.setVec3(name + "diffuse", diffuse_);
     shader.setVec3(name + "specular", specular_);
 
-}
-
-void DirectionalLight::assignToShadowShader(Shader& shader)
-{
-    shader.use();
-    shader.setMat4("projection", projection_);
-}
-
-void DirectionalLight::renderShadows(Shader& shader, std::vector<BaseObject*> renderables)
-{
-    shader.use();
-    shader.setMat4("view", glm::translate(
+    shader.setMat4("dirLightView[" + std::to_string(num) + "]", glm::translate(
                 glm::mat4_cast(glm::conjugate(glm::quatLookAt(direction_, UP))),
                 -getCenter_()+DIR_LIGHT_BACKWARD_OFFSET*direction_));
+    shader.setMat4("dirLightProj[" + std::to_string(num) + "]", projection_);
+
+    shader.setInt(name + "shadow", num);
+    glActiveTexture(GL_TEXTURE0 + num);
+    glBindTexture(GL_TEXTURE_2D, depthMap_);
+
+}
+
+void DirectionalLight::renderShadows(std::vector<BaseObject*> renderables)
+{
+    shadowShader_.use();
+
+    shadowShader_.setMat4("view", glm::translate(
+                glm::mat4_cast(glm::conjugate(glm::quatLookAt(direction_, UP))),
+                -getCenter_()+DIR_LIGHT_BACKWARD_OFFSET*direction_));
+    shadowShader_.setMat4("projection", projection_);
     glViewport(0,0,SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO_);
     glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
 
     // render all objects
     for(auto i = renderables.begin(); i != renderables.end(); i++)
     {
-        (*i)->Draw(shader);
+        (*i)->Draw(shadowShader_, 0);
     }
+    glCullFace(GL_BACK);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -86,7 +100,7 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse,
 
 }
 
-void PointLight::assignToShader(Shader& shader, unsigned int num)
+void PointLight::updateShader(Shader& shader, unsigned int num, unsigned int )
 {
     shader.use();
     std::string name = "pointLights[";
@@ -101,10 +115,7 @@ void PointLight::assignToShader(Shader& shader, unsigned int num)
     shader.setFloat(name + "quadratic", quadFalloff_);
 }
 
-void PointLight::assignToShadowShader(Shader&)
-{
-}
 
-void PointLight::renderShadows(Shader&, std::vector<BaseObject*>)
+void PointLight::renderShadows(std::vector<BaseObject*>)
 {
 }

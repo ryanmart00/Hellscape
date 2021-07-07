@@ -59,7 +59,7 @@ public:
     /** Draws the object according to mat4 view and projection and 
      * after draws all children
      */
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, int numShadowMaps);
 
     /** Updates this Object with respect to the delta time and 
      *  after updates all children
@@ -80,7 +80,7 @@ public:
 
     void addChild(BaseObject*);
 protected:
-    virtual void draw(Shader& shader) = 0;
+    virtual void draw(Shader& shader, int numShadowMaps) = 0;
     virtual void update(Dynamics*, float) = 0;
     glm::mat4 convertWorldTransform();
 
@@ -107,7 +107,7 @@ public:
     virtual void softDestruct(Dynamics*);
 
 protected:
-    virtual void draw(Shader& shader);
+    virtual void draw(Shader& shader, int numShadowMaps);
     virtual void update(Dynamics*, float);
 
     Model* model_;
@@ -140,7 +140,7 @@ public:
     virtual void softDestruct(Dynamics*); 
 
 protected:
-    virtual void draw(Shader& shader);
+    virtual void draw(Shader& shader, int numShadowMaps);
     virtual void update(Dynamics*, float);
 
     Model* model_;

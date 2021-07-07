@@ -182,15 +182,15 @@ std::vector<Texture*> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType
     return textures;
 }
 
-void Model::Draw(Shader& shader) 
+void Model::Draw(Shader& shader, int numShadowMaps) 
 {
     for(unsigned int i = 0; i < meshes_.size(); i++) 
     {
-        meshes_[i].Draw(shader);
+        meshes_[i].Draw(shader, numShadowMaps);
     }
 }
 
-unsigned int TextureFromFile(const char *path, const std::string& directory, bool gamma)
+unsigned int TextureFromFile(const char *path, const std::string& directory, bool)
 {
     std::string filename = std::string(path);
     filename = directory + '/' + filename;

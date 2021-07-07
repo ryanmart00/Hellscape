@@ -14,10 +14,9 @@ public:
     /**
      *  Assigns this light to shader.
      */
-    virtual void assignToShader(Shader& shader, unsigned int num) = 0;
-    virtual void assignToShadowShader(Shader& shader) = 0;
 
-    virtual void renderShadows(Shader& shader, std::vector<BaseObject*> renderables) = 0;
+    virtual void renderShadows(std::vector<BaseObject*> renderables) = 0;
+
     unsigned int depthMap_;
     
 protected:
@@ -25,8 +24,8 @@ protected:
     glm::vec3 diffuse_;
     glm::vec3 specular_; 
 
-    glm::mat4 projection_;
     unsigned int depthMapFBO_;
+
 };
 
 class DirectionalLight : public BaseLight
@@ -34,7 +33,6 @@ class DirectionalLight : public BaseLight
 public:
     DirectionalLight(glm::vec3 direction, glm::vec3 (*getCenter)(void), glm::vec3 ambient, 
             glm::vec3 diffuse, glm::vec3 specular);
-
     /**
      *  Assigns this light to shader.
      *  Note that the shader must have an array of structs named directionalLights
@@ -44,14 +42,14 @@ public:
      *      - diffuse
      *      - specular
      */
-    virtual void assignToShader(Shader& shader, unsigned int num);
+    void updateShader(Shader& shader, unsigned int num);
 
-    virtual void assignToShadowShader(Shader& shader);
-
-    virtual void renderShadows(Shader& shader, std::vector<BaseObject*> renderables);
+    virtual void renderShadows(std::vector<BaseObject*> renderables);
 
 
 protected:
+    Shader shadowShader_;
+    glm::mat4 projection_;
     glm::vec3 direction_;
     glm::vec3 (*getCenter_)(void);
 
@@ -76,10 +74,9 @@ public:
      *      - linear
      *      - quadratic
      */
-    virtual void assignToShader(Shader& shader, unsigned int num);
-    virtual void assignToShadowShader(Shader& shader);
+    void updateShader(Shader& shader, unsigned int num, unsigned int numDirLights);
 
-    virtual void renderShadows(Shader& shader, std::vector<BaseObject*> renderables);
+    virtual void renderShadows(std::vector<BaseObject*> renderables);
 
     glm::vec3 position_;
 

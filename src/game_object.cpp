@@ -22,12 +22,12 @@ BaseObject::~BaseObject()
     }
 }
 
-void BaseObject::Draw(Shader& shader)
+void BaseObject::Draw(Shader& shader, int numShadowMaps)
 {
-    draw(shader);
+    draw(shader, numShadowMaps);
     for(auto i = children_.begin(); i != children_.end(); ++i)
     {
-        (*i)->Draw(shader);
+        (*i)->Draw(shader, numShadowMaps);
     }
 }
 
@@ -91,10 +91,10 @@ StaticObject::~StaticObject()
     }
 }
 
-void StaticObject::draw(Shader& shader)
+void StaticObject::draw(Shader& shader, int numShadowMaps)
 {
     shader.setMat4("model", convertWorldTransform());
-    model_->Draw(shader);
+    model_->Draw(shader, numShadowMaps);
 } 
 
 void StaticObject::update(Dynamics*, float)
@@ -171,10 +171,10 @@ DynamicObject::~DynamicObject()
     }
 }
 
-void DynamicObject::draw(Shader& shader)
+void DynamicObject::draw(Shader& shader, int numShadowMaps)
 {
     shader.setMat4("model", convertWorldTransform());
-    model_->Draw(shader);
+    model_->Draw(shader, numShadowMaps);
 } 
 
 void DynamicObject::update(Dynamics*, float)

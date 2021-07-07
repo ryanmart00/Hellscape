@@ -82,7 +82,7 @@ void Player::pollInput(GLFWwindow *window, float)
     {
 //        cam.position_ += glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
 
-        rigidBody_->applyCentralImpulse(10*PLAYER_MASS*btVector3{0,1,0});
+        rigidBody_->applyCentralImpulse(PLAYER_MASS*btVector3{0,1,0});
     }
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
     {
@@ -107,7 +107,7 @@ void Player::update(Dynamics* world, float)
 {
     // Spring stuff
     const btVector3& from = rigidBody_->getCenterOfMassPosition();
-    btVector3 to = from + btVector3{0,-5.0f,0};
+    btVector3 to = from + btVector3{0,-2.0f,0};
 
     // Theoretically this will give us the first non-player hitbox
     ObjectRayCallback callback{rigidBody_};
@@ -115,11 +115,11 @@ void Player::update(Dynamics* world, float)
     world->world_->rayTest(from, to, callback);
     if(callback.hasHit())
     {
-        const float w = 1;
-        const float z = 1;
+        const float w = 10;
+        const float z = .9f;
 //        std::cerr << callback.m_closestHitFraction << std::endl;
         rigidBody_->applyCentralForce(PLAYER_MASS*
-            ((0.5f - callback.m_closestHitFraction)*w*w
+            ((0.3f - callback.m_closestHitFraction)*w*w
             - 2*w*z* rigidBody_->getInterpolationLinearVelocity().y())*btVector3{0,1,0});
     }
     else

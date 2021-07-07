@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 
+void replaceAll(std::string& data, std::string search, std::string replace);
 
 class Shader
 {
@@ -22,7 +23,9 @@ public:
     /**
      *
      */
-    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
+    Shader(const int numDirLights, const int numPointLights,
+            const char* vertexPath, const char* fragmentPath, 
+            const char* geometryPath = nullptr);
 
     /**
      *

@@ -22,9 +22,8 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 //TODO: Make sure these always match the constants in ALL shaders.
-const unsigned int NUM_DIR_LIGHTS = 1;
-const unsigned int NUM_POINT_LIGHTS = 4;
-
+const int NUM_DIR_LIGHTS = 0;
+const int NUM_POINT_LIGHTS = 4;
 
 
 const unsigned int NUM_INPUT_MANAGERS = 1;
@@ -42,10 +41,9 @@ const glm::vec3 PLAYER_CAMERA_UP_OFFSET = 1.0f * UP; // m vec
 //***General Shadow Constants
 
 // These determine the resolution of shadows.
-const unsigned int SHADOW_WIDTH = 1024;
-const unsigned int SHADOW_HEIGHT = 1024;
+const unsigned int SHADOW_WIDTH = 2048;
+const unsigned int SHADOW_HEIGHT = 2048;
 
-const unsigned int NUM_SHADOW_MAPS = 1;
 
 //***Directional Light Shadow constants***
 
