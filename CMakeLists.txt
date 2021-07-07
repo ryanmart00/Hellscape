@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(Hellscape)
+project(PushGame)
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
@@ -80,16 +80,16 @@ file(GLOB SOURCES "src/*.c*")
 
 
 # add the executable
-add_executable(Hellscape ${SOURCES})
+add_executable(PushGame ${SOURCES})
 
 option(DEBUG "Will print Debug information to std out" OFF)
 if(${DEBUG})
     message("Compiling with debug info")
-    set_target_properties(Hellscape PROPERTIES COMPILE_DEFINITIONS "DEBUG")
-    target_compile_options(Hellscape PRIVATE -g)
+    set_target_properties(PushGame PROPERTIES COMPILE_DEFINITIONS "DEBUG")
+    target_compile_options(PushGame PRIVATE -g)
 endif(${DEBUG})
 
-target_link_libraries(Hellscape 
+target_link_libraries(PushGame 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 
     glfw ${GLFW_LIBRARIES}
@@ -102,18 +102,18 @@ target_link_libraries(Hellscape
 option(ZIP "Zip the files into the builds folder" OFF)
 if(${ZIP} AND WIN32)
     message("Zipping for windows")
-    add_custom_command(TARGET Hellscape 
+    add_custom_command(TARGET PushGame 
 		POST_BUILD
 		COMMAND zip 
-		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Win64/Hellscape.zip 
-		Hellscape.exe msys-2.0.dll msys-gcc_s-seh-1.dll msys-stdc++-6.dll
+		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Win64/PushGame.zip 
+		PushGame.exe msys-2.0.dll msys-gcc_s-seh-1.dll msys-stdc++-6.dll
 		libwinpthread-1.dll zlib1.dll assets)
 elseif(${ZIP})
     message("Zipping for linux")
-    add_custom_command(TARGET Hellscape 
+    add_custom_command(TARGET PushGame 
 		POST_BUILD
 		COMMAND zip 
-		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Linux/Hellscape.zip 
-		Hellscape assets)
+		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Linux/PushGame.zip 
+		PushGame assets)
 endif()
 
