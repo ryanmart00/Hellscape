@@ -75,6 +75,13 @@ add_subdirectory(libs/glfw)
 include_directories(libs/glfw/include)
 link_directories(${PROJECT_BINARY_DIR}/libs/glfw/src)
 
+
+#include freetype
+#---------------------------------
+add_subdirectory(libs/freetype)
+include_directories(libs/freetype/include)
+link_directories(${PROJECT_BINARY_DIR}/libs/freetype/builds)
+
 #set SOURCES to all files in src ending in .cpp
 file(GLOB SOURCES "src/*.c*")
 
@@ -93,7 +100,8 @@ target_link_libraries(PushGame
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 
     glfw ${GLFW_LIBRARIES}
-    ${WIN_LINKS})
+    ${WIN_LINKS} freetype ${FREETYPE_LIBRARIES})
+target_include_directories(PushGame PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
 #-lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath\
 #-lglfw3 -lglad -lassimp -lGL -lX11 -lpthread -lXrandr -lXi -ldl 
