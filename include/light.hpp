@@ -9,7 +9,8 @@
 class BaseLight
 {
 public:
-    BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular); 
+    BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, 
+            const char* vs, const char* fs, const char* gs); 
 
     /**
      *  Assigns this light to shader.
@@ -17,14 +18,17 @@ public:
 
     virtual void renderShadows(std::vector<BaseObject*> renderables) = 0;
 
-    unsigned int depthMap_;
     
 protected:
+    Shader shadowShader_;
     glm::vec3 ambient_;
     glm::vec3 diffuse_;
     glm::vec3 specular_; 
+    glm::mat4 projection_;
 
+    unsigned int depthMap_;
     unsigned int depthMapFBO_;
+
 
 };
 
@@ -48,8 +52,6 @@ public:
 
 
 protected:
-    Shader shadowShader_;
-    glm::mat4 projection_;
     glm::vec3 direction_;
     glm::vec3 (*getCenter_)(void);
 

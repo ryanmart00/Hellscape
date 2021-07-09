@@ -42,7 +42,7 @@ struct PointLight
     vec3 diffuse;
     vec3 specular;
 
-    sampler2D shadow; 
+    samplerCube shadow; 
 };
 
 #define POINT_LIGHTS @NUM_POINT_LIGHTS@
@@ -58,9 +58,9 @@ in VS_OUT {
     vec4 FragPosLightSpace[MAX(DIR_LIGHTS,1)];
 } fs_in;
 
-uniform vec3 lightPos;
-uniform vec3 lightColor;
 uniform vec3 viewPos;
+uniform float far_plane;
+
 
 vec3 CalcDirLight(DirLight light, int num, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
@@ -83,6 +83,10 @@ void main()
     {
         result += CalcPointLight(pointLights[i], norm, fs_in.FragPos, viewDir);
     }
+
+    float closestDepth = texture(pointLights[0].shadow, 
+        fs_in.FragPos - pointLights[0].position).r;
+    //FragColor = vec4(vec3(closestDepth / far_plane), 1.0);
     
     FragColor = vec4(result, 1.0);
 }
@@ -99,7 +103,7 @@ vec3 CalcDirLight(DirLight light, int num, vec3 normal, vec3 viewDir)
     // compute shadow
     vec3 projCoords = 0.5 * fs_in.FragPosLightSpace[num].xyz + 0.5;
     float fragmentDepth = projCoords.z;
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float bias = 0.005;
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(light.shadow, 0);
     for(int x = -1; x <= 1; ++x)
@@ -119,9 +123,11 @@ vec3 CalcDirLight(DirLight light, int num, vec3 normal, vec3 viewDir)
     return (ambient + (1.0-shadow)*(diffuse + specular));
 }
 
+
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 fragToLight = fragPos - light.position;
+    vec3 lightDir = normalize(-fragToLight);
     // diffuse
     float diff = max(dot(normal, lightDir), 0.0);
     // specular
@@ -132,11 +138,17 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float atten = 1.0 / (light.constant + light.linear * distance +
         light.quadratic * (distance * distance));
 
+    float currentDepth = length(fragToLight);
+    float bias   = 0.05;
+    float closestDepth = far_plane * texture(light.shadow, fragToLight).r;
+    float shadow = currentDepth -  bias > closestDepth && currentDepth <= far_plane ? 1.0 : 0.0;
+
+
     // combine
     vec3 ambient  = light.ambient  * material.diffuse;
     vec3 diffuse  = light.diffuse  * diff * material.diffuse;
     vec3 specular = light.specular * spec * material.specular;
-    return atten * (ambient + diffuse + specular);
+    return atten * (ambient + (1.0f - shadow)*(diffuse + specular));
 }
 
 

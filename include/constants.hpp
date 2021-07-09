@@ -21,11 +21,6 @@ const glm::vec3 UP{0.0f, 1.0f, 0.0f};
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-//TODO: Make sure these always match the constants in ALL shaders.
-const int NUM_DIR_LIGHTS = 0;
-const int NUM_POINT_LIGHTS = 4;
-
-
 const unsigned int NUM_INPUT_MANAGERS = 1;
 const unsigned int PLAYER_INPUT_INDEX = 0;
 
@@ -41,8 +36,11 @@ const glm::vec3 PLAYER_CAMERA_UP_OFFSET = 1.0f * UP; // m vec
 //***General Shadow Constants
 
 // These determine the resolution of shadows.
-const unsigned int SHADOW_WIDTH = 2048;
-const unsigned int SHADOW_HEIGHT = 2048;
+const unsigned int DIR_SHADOW_WIDTH = 1 << 13;
+const unsigned int DIR_SHADOW_HEIGHT = 1 << 13;
+
+const unsigned int POINT_SHADOW_HEIGHT = 1 << 10;
+const unsigned int POINT_SHADOW_WIDTH = 1 << 10;
 
 
 //***Directional Light Shadow constants***
@@ -55,6 +53,10 @@ const float NEAR_SHADOW_CLIPPING_PLANE = 1;
 // This is the length from a directional light's position where shadows will be drawn.
 // the larger this is the more grainy the shadows.
 const float FAR_SHADOW_CLIPPING_PLANE = 100;
+
+// This is the length from a point light's position where shadows will be drawn.
+// the larger this is the more grainy the shadows.
+const float FAR_POINT_SHADOW_CLIPPING_PLANE = 25;
 
 // This is the distance from the center of view (determined by player postion)
 // that shadows will start being rendered at. Setting this to half the 

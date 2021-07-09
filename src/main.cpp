@@ -143,16 +143,23 @@ int main()
             glm::vec3{0.4f, 0.4f, 0.4f},
             glm::vec3{0.2f, 0.2f, 0.2f}
         });
+    dirLights.push_back(DirectionalLight
+        {
+            glm::vec3{-1, -0.1f, 0}, 
+            &getCenter,
+            glm::vec3{0.05f, 0.05f, 0.05f},
+            glm::vec3{0.4f, 0.4f, 0.4f},
+            glm::vec3{0.2f, 0.2f, 0.2f}
+        });
 
     // point lights
-    /*
     pointLights.push_back(PointLight
         {
             glm::vec3{0.7f, 30.2f, 2.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.10f, 0.010f
+            1.0f, 0.09f, 0.032f
         });
     pointLights.push_back(PointLight
         {
@@ -160,29 +167,27 @@ int main()
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.7f, 1.8f
+            1.0f, 0.09f, 0.032f
         });
     pointLights.push_back(PointLight
         {
-            glm::vec3{0.0f,  30.0f, -3.0f},
+            glm::vec3{30.0f,  25.0f, -3.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.7f, 1.8f
+            1.0f, 0.09f, 0.032f
         });
     pointLights.push_back(PointLight
         {
-            glm::vec3{2.3f, 27.3f, -4.0f},
+            glm::vec3{2.3f, 25.0f, -40.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.7f, 1.8f
+            1.0f, 0.09f, 0.032f
         });
-    */
 	Shader shader(dirLights.size(), pointLights.size(), 
             "assets/gl/object.vs", "assets/gl/object.fs");
 
-    Shader debugDepthQuad(0,0,"assets/gl/debug_quad.vs", "assets/gl/debug_quad.fs");
     Shader lampShader(0,0, "assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
     btTransform trans;
@@ -211,7 +216,7 @@ int main()
     {
         btTransform trans;
         trans.setIdentity();
-        trans.setOrigin(btVector3{0, 10*i, 0});
+        trans.setOrigin(btVector3{0, 10.0f*i, 0});
         dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 10,
             "assets/Models/cube/cube.obj", trans};    
         dynamicCubes[i]->softInit();
@@ -238,8 +243,8 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
         ((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
 
-    debugDepthQuad.use();
-    debugDepthQuad.setInt("depthMap", 0);
+    shader.use();
+    shader.setFloat("far_plane", FAR_SHADOW_CLIPPING_PLANE);
 
 	//Main Loop
 	//---------
@@ -267,6 +272,10 @@ int main()
         for(int i = 0; i < (int)dirLights.size(); i++)
         {
             dirLights.at(i).renderShadows(objects);
+        }
+        for(int i = 0; i < (int)pointLights.size(); i++)
+        {
+            pointLights.at(i).renderShadows(objects);
         }
 
         //Reset Viewport Size and clear again
@@ -296,19 +305,9 @@ int main()
         // Render the objects
         for(auto i = objects.begin(); i != objects.end(); i++)
         {
-            (*i)->Draw(shader, dirLights.size());
+            (*i)->Draw(shader, dirLights.size() + pointLights.size());
         }
         
-
-        debugDepthQuad.use();
-        debugDepthQuad.setFloat("near_plane", NEAR_SHADOW_CLIPPING_PLANE);
-        debugDepthQuad.setFloat("far_plane", FAR_SHADOW_CLIPPING_PLANE);
-        glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, shadow_casters.front()->depthMap_);
-        //renderQuad();
-
-
-
         // lamp
         lampShader.use();
         lampShader.setMat4("projection", projection);
