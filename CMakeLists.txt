@@ -19,6 +19,7 @@ if(WIN32)
     set(WIN_LINKS "gdi32")
 endif(WIN32)
 
+set (CMAKE_CXX_STANDARD 11)
 
 
 #include assimp

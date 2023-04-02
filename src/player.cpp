@@ -107,7 +107,7 @@ void Player::update(Dynamics* world, float)
 {
     // Spring stuff
     const btVector3& from = rigidBody_->getCenterOfMassPosition();
-    btVector3 to = from + btVector3{0,-2.0f,0};
+    const btVector3 to = from + btVector3{0,-2.0f,0};
 
     // Theoretically this will give us the first non-player hitbox
     ObjectRayCallback callback{rigidBody_};
@@ -115,12 +115,22 @@ void Player::update(Dynamics* world, float)
     world->world_->rayTest(from, to, callback);
     if(callback.hasHit())
     {
-        const float w = 10;
-        const float z = .9f;
+        const float pw = 10;
+        const float pz = .9f;
+        const float poff = 0.3f;
+
 //        std::cerr << callback.m_closestHitFraction << std::endl;
+        const btVector3 normal = callback.m_hitNormalWorld;
+
+
         rigidBody_->applyCentralForce(PLAYER_MASS*
-            ((0.3f - callback.m_closestHitFraction)*w*w
-            - 2*w*z* rigidBody_->getInterpolationLinearVelocity().y())*btVector3{0,1,0});
+            ((0.3f - callback.m_closestHitFraction)*pw*pw
+            - 2*pw*pz* normal.dot(rigidBody_->getInterpolationLinearVelocity()))*normal);
+
+        const btVector3 playerUp = rigidBody_->getWorldTransform().getBasis() * btVector3{0,1,0};
+        rigidBody_->applyTorque(playerUp.cross(normal));
+
+        rigidBody_->setAngularFactor(playerUp);
     }
     else
     {

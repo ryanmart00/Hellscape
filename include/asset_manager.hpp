@@ -48,6 +48,7 @@ public:
 
 private:
 
+/*
     struct MyHash
     {
         const uint32_t Prime = 0x01000193;  //   16777619
@@ -67,6 +68,7 @@ private:
         }
 
     };
+*/
 
     struct ModelCount
     {
@@ -76,9 +78,9 @@ private:
         Model* model_;
     };
     
-    std::unordered_map<std::string, ModelCount, MyHash> models_;
+    std::unordered_map<std::string, ModelCount> models_;
 
-    std::unordered_map<std::string, std::future<Model*>, MyHash> futures_;
+    std::unordered_map<std::string, std::future<Model*>> futures_;
 };
 
     /** InputManager Details

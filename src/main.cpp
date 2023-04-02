@@ -234,7 +234,7 @@ int main()
 
     //Initialize Bullet
     //-----------------
-    world = new Dynamics(btVector3(0,-10,0));
+    world = new Dynamics(btVector3(0,0,0));
 
     std::vector<BaseObject*> objects;
     std::vector<DirectionalLight> dirLights;
@@ -312,8 +312,9 @@ int main()
     glfwSetCursorPosCallback(window, InputManager::mouseCallback);
 
     // After we generate shaders load objects
+    trans.setOrigin(btVector3{10.0f,-30.0f,10.0f});
     StaticObject* floor = new StaticObject{nullptr, manager, 
-        "assets/Models/Playground/hills.obj","assets/Models/Playground/hills_shape.obj",
+        "../assets/Models/World/world.obj","assets/Models/World/world.obj",
         trans};    
     floor->softInit();
     objects.push_back(floor);
