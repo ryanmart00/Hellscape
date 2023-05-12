@@ -92,7 +92,7 @@ GLFWwindow* initWindow()
 	#ifdef DEBUG
         std::cout << "Initializing Window..." << std::endl;
     #endif
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "PushGame", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hellscape", NULL, NULL);
 	if (window == NULL)
 	{
         std::cerr << "Failed to create GLFW window" << std::endl;
