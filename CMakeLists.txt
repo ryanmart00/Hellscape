@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(PushGame)
+project(Hellscape)
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
@@ -88,21 +88,21 @@ file(GLOB SOURCES "src/*.c*")
 
 
 # add the executable
-add_executable(PushGame ${SOURCES})
+add_executable(Hellscape ${SOURCES})
 
 option(DEBUG "Will print Debug information to std out" OFF)
 if(${DEBUG})
     message("Compiling with debug info")
-    set_target_properties(PushGame PROPERTIES COMPILE_DEFINITIONS "DEBUG")
-    target_compile_options(PushGame PRIVATE -g)
+    set_target_properties(Hellscape PROPERTIES COMPILE_DEFINITIONS "DEBUG")
+    target_compile_options(Hellscape PRIVATE -g)
 endif(${DEBUG})
 
-target_link_libraries(PushGame 
+target_link_libraries(Hellscape 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 
     glfw ${GLFW_LIBRARIES}
     ${WIN_LINKS} freetype ${FREETYPE_LIBRARIES})
-target_include_directories(PushGame PRIVATE ${FREETYPE_INCLUDE_DIRS})
+target_include_directories(Hellscape PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
 #-lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath\
 #-lglfw3 -lglad -lassimp -lGL -lX11 -lpthread -lXrandr -lXi -ldl 
@@ -111,18 +111,18 @@ target_include_directories(PushGame PRIVATE ${FREETYPE_INCLUDE_DIRS})
 option(ZIP "Zip the files into the builds folder" OFF)
 if(${ZIP} AND WIN32)
     message("Zipping for windows")
-    add_custom_command(TARGET PushGame 
+    add_custom_command(TARGET Hellscape 
 		POST_BUILD
 		COMMAND zip 
-		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Win64/PushGame.zip 
-		PushGame.exe msys-2.0.dll msys-gcc_s-seh-1.dll msys-stdc++-6.dll
+        ARGS -r ${CMAKE_SOURCE_DIR}/builds/Win64/Hellscape.zip 
+        Hellscape.exe msys-2.0.dll msys-gcc_s-seh-1.dll msys-stdc++-6.dll
 		libwinpthread-1.dll zlib1.dll assets)
 elseif(${ZIP})
     message("Zipping for linux")
-    add_custom_command(TARGET PushGame 
+    add_custom_command(TARGET Hellscape 
 		POST_BUILD
 		COMMAND zip 
-		ARGS -r ${CMAKE_SOURCE_DIR}/builds/Linux/PushGame.zip 
-		PushGame assets)
+        ARGS -r ${CMAKE_SOURCE_DIR}/builds/Linux/Hellscape.zip 
+        Hellscape assets)
 endif()
 

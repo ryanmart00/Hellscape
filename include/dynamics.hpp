@@ -26,7 +26,9 @@ public:
 
     void stepSimulation(float dt);
 
+#ifdef DEBUG
     void debugDraw(glm::mat4 proj, glm::mat4 view);
+#endif 
 
     std::vector<btRigidBody*> bodies_;
 
@@ -36,6 +38,8 @@ private:
     btBroadphaseInterface* broadphase_;
     btConstraintSolver* solver_;
     btCollisionConfiguration* collisionConfig_;
+#ifdef DEBUG
     DebugDrawer* debug_;
+#endif
 };
 #endif

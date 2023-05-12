@@ -141,12 +141,13 @@ void StaticObject::hardInit(Dynamics* world)
     rigidBody_ = new btRigidBody(info);
 
     world->addRigidBody(rigidBody_);
-    manager_->unload(shapePath_);
+    //TODO: Can I unload the shape here?
 }
 
 void StaticObject::softDestruct(Dynamics* world)
 {
     world->removeRigidBody(rigidBody_);
+    manager_->unload(shapePath_);
 }
 
 DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager, 

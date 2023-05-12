@@ -64,12 +64,15 @@ public:
 
 	}
 	virtual void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) {}
-	virtual void reportErrorWarning(const char *) {}
+	virtual void reportErrorWarning(const char * warn) 
+    {
+        std::cout << warn << std::endl;
+    }
 	virtual void draw3dText(const btVector3 &, const char *) {}
 	virtual void setDebugMode(int p) {
 		m = p;
 	}
-	int getDebugMode(void) const { return 3; }
+	int getDebugMode(void) const { return m; }
 	int m;
     Shader shader;
 };

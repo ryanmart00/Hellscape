@@ -299,29 +299,38 @@ int main()
 
     Shader lampShader(0,0, "assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
-    btTransform trans;
-    trans.setIdentity();
-    trans.setOrigin(btVector3{10.0f,20.0f,10.0f});
-    player = new Player{manager, trans, glm::vec3{0,0,1}, UP};
-    player->softInit();
-    objects.push_back(player);
-    // Add player's processInputs to the input managers
-    InputManager::objects_[PLAYER_INPUT_INDEX] = player;
+    {
+        btTransform trans;
+        trans.setIdentity();
+        trans.setOrigin(btVector3{10.0f,20.0f,10.0f});
+        player = new Player{manager, trans, glm::vec3{0,0,1}, UP};
+        player->softInit();
+        objects.push_back(player);
+        // Add player's processInputs to the input managers
+        InputManager::objects_[PLAYER_INPUT_INDEX] = player;
+    }
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, InputManager::mouseCallback);
 
+    btTransform trans;
     // After we generate shaders load objects
     trans.setOrigin(btVector3{10.0f,-30.0f,10.0f});
+    trans.setRotation(btQuaternion{btVector3{1,0,0}, glm::radians(-90.0f)});
     StaticObject* floor = new StaticObject{nullptr, manager, 
-        "../assets/Models/World/world.obj","assets/Models/World/world.obj",
+        "../assets/Models/Island/object.dae","assets/Models/Island/object_hitbox.dae",
         trans};    
+    
     floor->softInit();
     objects.push_back(floor);
 
     const int NUMCUBES = 10;
     DynamicObject* dynamicCubes[NUMCUBES];
     btCollisionShape* cubeShape = new btBoxShape{btVector3{1,1,1}};
+
+
+
+
     for(int i = 0; i < NUMCUBES; ++i)
     {
         btTransform trans;
@@ -443,9 +452,9 @@ int main()
                     + std::to_string((int)(1/dt))).c_str(),
                     -1 + 8 * sx, 1 - 50 * sy, sx, sy);
 
-        #ifdef DEBUG
-            world->debugDraw(projection, view);
-        #endif 
+    #ifdef DEBUG
+        world->debugDraw(projection, view);
+    #endif 
     
 		//Handle events
 		glfwSwapBuffers(window);
