@@ -43,7 +43,7 @@ void Player::hardInit(Dynamics* world)
     DynamicObject::hardInit(world);
     // We'll be taking care of the gravity
     rigidBody_->setFlags(btRigidBodyFlags::BT_DISABLE_WORLD_GRAVITY);
-    rigidBody_->setGravity(btVector3{0,-10,0});
+    rigidBody_->setGravity(btVector3{0,0,0});
     // This says that the rigid body does not rotate around x or z
     rigidBody_->setAngularFactor(btVector3{0.0f, 1.0f, 0.0f});
     rigidBody_->setActivationState(DISABLE_DEACTIVATION);
@@ -82,7 +82,7 @@ void Player::pollInput(GLFWwindow *window, float)
     {
 //        cam.position_ += glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
 
-        rigidBody_->applyCentralForce(PLAYER_MASS*btVector3{0,1,0});
+        rigidBody_->applyCentralForce(PLAYER_MASS*btVector3{0,100,0});
     }
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
     {

@@ -24,7 +24,7 @@ uniform mat4 dirLightProj[MAX(DIR_LIGHTS,1)];
 void main()
 {
     vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
-    vs_out.Normal = mat3(transpose(inverse(model))) * aNormal;
+    vs_out.Normal = mat3(model) * aNormal;
     vs_out.TexCoords = aTexCoords;
     for(int i = 0; i < DIR_LIGHTS; i++)
     {

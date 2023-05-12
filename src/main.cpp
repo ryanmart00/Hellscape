@@ -234,7 +234,7 @@ int main()
 
     //Initialize Bullet
     //-----------------
-    world = new Dynamics(btVector3(0,0,0));
+    world = new Dynamics(btVector3(0,-10,0));
 
     std::vector<BaseObject*> objects;
     std::vector<DirectionalLight> dirLights;
@@ -315,11 +315,12 @@ int main()
 
     btTransform trans;
     // After we generate shaders load objects
-    trans.setOrigin(btVector3{10.0f,-30.0f,10.0f});
+    trans.setOrigin(btVector3{10.0f,-100.0f,10.0f});
     trans.setRotation(btQuaternion{btVector3{1,0,0}, glm::radians(-90.0f)});
+    
     StaticObject* floor = new StaticObject{nullptr, manager, 
-        "../assets/Models/Island/object.dae","assets/Models/Island/object_hitbox.dae",
-        trans};    
+        "../assets/Models/Hellscape Map Body Sample Dense Smoth.obj",
+        "assets/Models/Hellscape Map Body Sample Dense Smoth.obj", trans};    
     
     floor->softInit();
     objects.push_back(floor);
