@@ -49,6 +49,7 @@ private:
     bool firstMouse = true;
     double lastX;
     double lastY;
+    bool grounded = false;
 };
 
 #endif

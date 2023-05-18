@@ -314,13 +314,13 @@ int main()
     glfwSetCursorPosCallback(window, InputManager::mouseCallback);
 
     btTransform trans;
+    trans.setIdentity();
     // After we generate shaders load objects
     trans.setOrigin(btVector3{10.0f,-100.0f,10.0f});
-    trans.setRotation(btQuaternion{btVector3{1,0,0}, glm::radians(-90.0f)});
     
     StaticObject* floor = new StaticObject{nullptr, manager, 
-        "../assets/Models/Hellscape Map Body Sample Dense Smoth.obj",
-        "assets/Models/Hellscape Map Body Sample Dense Smoth.obj", trans};    
+        "assets/Models/Island/object.dae",
+        "assets/Models/Island/object.dae", trans};    
     
     floor->softInit();
     objects.push_back(floor);
