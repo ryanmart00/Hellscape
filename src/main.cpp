@@ -337,7 +337,7 @@ int main()
         btTransform trans;
         trans.setIdentity();
         trans.setOrigin(btVector3{0, 10.0f*i, 0});
-        dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 10,
+        dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 100,
             "assets/Models/cube/cube.obj", trans};    
         dynamicCubes[i]->softInit();
         objects.push_back(dynamicCubes[i]);

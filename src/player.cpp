@@ -138,10 +138,10 @@ void Player::update(Dynamics* world, float)
     else 
     {
         grounded = false;
-        rigidBody_->applyCentralForce(-PLAYER_MASS* 10*btVector3{0,1,0});
+        rigidBody_->applyCentralForce(-PLAYER_MASS* 20*btVector3{0,1,0});
     }
 
-    rigidBody_->applyCentralForce(-PLAYER_MASS* btVector3
+    rigidBody_->applyCentralForce(-10* PLAYER_MASS* btVector3
     {
         rigidBody_->getInterpolationLinearVelocity().x(), 
         0, 
