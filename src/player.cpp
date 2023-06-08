@@ -88,6 +88,11 @@ void Player::pollInput(GLFWwindow *window, float)
     {
 //        cam.position_ -= glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
     }
+    if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        std::cout << "(" << rigidBody_->getCenterOfMassPosition().getX() << "," << rigidBody_->getCenterOfMassPosition().getY() << "," 
+            << rigidBody_->getCenterOfMassPosition().getZ() << ")" << std::endl;
+    }
 }
 
 const glm::mat4 Player::getCameraView()

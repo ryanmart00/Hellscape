@@ -3,7 +3,9 @@
 #include "btVector3.h"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/fwd.hpp"
+#include "glm/glm.hpp"
 #include <string>
+#include "assimp/types.h"
 
 //*** conversions ***
 static glm::vec3 convert(btVector3& vec)
@@ -14,6 +16,12 @@ static glm::vec3 convert(btVector3& vec)
 static btVector3 convert(glm::vec3 vec)
 {
     return btVector3{vec.x, vec.y, vec.z};
+}
+
+static glm::mat4 convert(aiMatrix4x4& mat)
+{
+    //TODO: is this transposed?
+    return glm::mat4{mat.a1, mat.a2, mat.a3, mat.a4, mat.b1, mat.b2, mat.b3, mat.b4, mat.c1, mat.c2, mat.c3, mat.c4, mat.d1, mat.d2, mat.d3, mat.d4};
 }
 
 const glm::vec3 UP{0.0f, 1.0f, 0.0f};
@@ -66,6 +74,9 @@ const float DIR_LIGHT_BACKWARD_OFFSET = (FAR_SHADOW_CLIPPING_PLANE-NEAR_SHADOW_C
     / 2.0f;
 
 
+//*** Bone caps ***
+const unsigned int MAX_BONES_PER_VERTEX = 4;
+const unsigned int MAX_BONES = 10;
 
 
 #endif

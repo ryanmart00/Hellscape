@@ -1,8 +1,8 @@
 #include "mesh.hpp"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-    std::vector<Texture*> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess)
-    : vertices_{vertices}, indices_{indices}, textures_{textures}, diffuse_{diffuse},
+    std::vector<Texture*> textures, std::vector<Bone> bones, glm::vec3 diffuse, glm::vec3 specular, float shininess)
+    : vertices_{vertices}, indices_{indices}, textures_{textures}, bones_{bones}, diffuse_{diffuse},
         specular_{specular}, shininess_{shininess}
 {
     // We call setupmesh later with a gl environment
@@ -42,6 +42,14 @@ void Mesh::setupMesh()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
         (void*) offsetof(Vertex, TexCoords));
 
+    // bone ids (for now we have 4 but could increase)
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, sizeof(Vertex), (void*) offsetof(Vertex, BoneIds));
+
+    // bone weights
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) offsetof(Vertex, Weights));
+
     glBindVertexArray(0);
 }
 
@@ -77,6 +85,13 @@ void Mesh::Draw(Shader& shader, int numShadowMaps)
     shader.setVec3("material.specular", specular_);
     
     glActiveTexture(GL_TEXTURE0);
+
+    // set bone offsets
+    shader.setInt("numBones", bones_.size());
+    for(int i = 0; i < bones_.size(); i++)
+    {
+        shader.setMat4(("bones[" + std::to_string(i) + "]").c_str(), bones_[i].offset);
+    }
 
     // draw mesh
     glBindVertexArray(VAO_);

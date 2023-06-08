@@ -343,6 +343,14 @@ int main()
         objects.push_back(dynamicCubes[i]);
     }
 
+    // Bone Test
+    trans.setIdentity();
+    trans.setOrigin(btVector3{10.0f,11.0f,10.0f});
+    StaticObject* boneTest = new StaticObject{nullptr, manager, 
+        "assets/Models/door down angled.fbx",
+        "assets/Models/door down angled.fbx", trans};
+    objects.push_back(boneTest);
+
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
 
@@ -374,6 +382,10 @@ int main()
         float currentFrame = glfwGetTime();
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        glm::mat4 bone = glm::identity<glm::mat4>();
+        glm::translate(bone, glm::vec3{0.0,0.0,sin(glfwGetTime())});
+        boneTest->model_->meshes_[0].bones_[0].offset = bone;
 
         // bullet physics
         world->stepSimulation(dt);

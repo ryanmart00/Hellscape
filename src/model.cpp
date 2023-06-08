@@ -72,6 +72,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture*> textures;
+    std::vector<Bone> bones;
 
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -87,6 +88,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vec.y = mesh->mNormals[i].y;
         vec.z = mesh->mNormals[i].z;
         vertex.Normal = vec;
+        glm::vec4 zero = glm::vec4{0};
+        vertex.BoneIds = zero;
+        vertex.Weights = zero;
 
         if(mesh->mTextureCoords[0])
         {
@@ -111,6 +115,40 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             indices.push_back(face.mIndices[j]);
         }
     }
+    // process bones
+    if(mesh->HasBones())
+    {
+#ifdef DEBUG
+        if(mesh->mNumBones > MAX_BONES)
+        {
+            std::cerr << "Mesh has too many bones!"  << std::endl;
+        }
+#endif 
+        for(unsigned int i = 0; i < mesh->mNumBones; i++)
+        {
+            bones.push_back(
+                Bone
+                {
+                    convert(mesh->mBones[i]->mOffsetMatrix),
+                    i
+                });
+#ifdef DEBUG
+            if(mesh->mBones[i]->mNumWeights > MAX_BONES_PER_VERTEX)
+            {
+                std::cerr << "Mesh has too many bones per vertex!"  << std::endl;
+            }
+#endif 
+            for(unsigned int j = 0; j < mesh->mBones[i]->mNumWeights && j < MAX_BONES_PER_VERTEX; j++)
+            {
+
+                Vertex& vert = vertices[mesh->mBones[i]->mWeights[j].mVertexId];
+                vert.BoneIds[j] = i;
+                vert.Weights[j] = mesh->mBones[i]->mWeights[j].mWeight;
+            }
+
+        }
+    }
+
 
     glm::vec3 diffuse;
     glm::vec3 specular;
@@ -143,7 +181,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
-    Mesh m{vertices, indices, textures, diffuse, specular, shininess};
+    Mesh m{vertices, indices, textures, bones, diffuse, specular, shininess};
 
     return m;
 

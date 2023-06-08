@@ -63,10 +63,13 @@ Shader::Shader(const int numDirLights, const int numPointLights,
     }
     replaceAll(vStr, "@NUM_DIR_LIGHTS@", std::to_string(numDirLights));
     replaceAll(vStr, "@NUM_POINT_LIGHTS@", std::to_string(numPointLights));
+    replaceAll(vStr, "@NUM_MAX_BONES@", std::to_string(MAX_BONES));
     replaceAll(fStr, "@NUM_DIR_LIGHTS@", std::to_string(numDirLights));
     replaceAll(fStr, "@NUM_POINT_LIGHTS@", std::to_string(numPointLights));
+    replaceAll(fStr, "@NUM_MAX_BONES@", std::to_string(MAX_BONES));
     replaceAll(gStr, "@NUM_DIR_LIGHTS@", std::to_string(numDirLights));
     replaceAll(gStr, "@NUM_POINT_LIGHTS@", std::to_string(numPointLights));
+    replaceAll(gStr, "@NUM_MAX_BONES@", std::to_string(MAX_BONES));
     const char* vertexCode = vStr.c_str();
     const char* fragmentCode = fStr.c_str();
     const char* geometryCode = gStr.c_str();
