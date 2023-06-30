@@ -16,6 +16,7 @@ out VS_OUT {
     vec3 Normal;
     vec2 TexCoords;
     vec4 FragPosLightSpace[MAX(DIR_LIGHTS,1)];
+    vec3 Color;
 } vs_out;
 
 uniform mat4 model;
@@ -49,5 +50,7 @@ void main()
     }
 
 	gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
+    vs_out.Color = vec3(0.0);
+    vs_out.Color = vec3(aWeightsA.x * bones[aBoneIdsA.x] * vec4(1.0,0.0,0.0, 0.0));
 
 }

@@ -19,14 +19,17 @@ struct Vertex
     glm::vec3 Position;
     glm::vec3 Normal;
     glm::vec2 TexCoords;
-    glm::ivec4 BoneIds;
-    glm::vec4 Weights;
+    glm::ivec4 BoneIdsA;
+    glm::ivec4 BoneIdsB;
+    glm::vec4 WeightsA;
+    glm::vec4 WeightsB;
 };
 
 struct Bone 
 {
     glm::mat4 offset;
     unsigned int id;
+    std::string name;
 };
 
 struct Texture

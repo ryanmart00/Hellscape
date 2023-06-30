@@ -57,24 +57,24 @@ void Player::pollInput(GLFWwindow *window, float)
 	}
 	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-        glm::vec3 v = 10*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
+        glm::vec3 v = 20*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
     }
 	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 //        cam.position_ -= glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 5.0f;
-        glm::vec3 v = -10*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
+        glm::vec3 v = -20*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 	}
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-        glm::vec3 v = -10*PLAYER_MASS * quatRight(cam_);
+        glm::vec3 v = -20*PLAYER_MASS * quatRight(cam_);
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 //        cam.position_ -= cam.getRight() * dt * 7.0f;
 	}
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-        glm::vec3 v = 10*PLAYER_MASS * quatRight(cam_);
+        glm::vec3 v = 20*PLAYER_MASS * quatRight(cam_);
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 //        cam.position_ += cam.getRight() * dt * 7.0f;
 	}

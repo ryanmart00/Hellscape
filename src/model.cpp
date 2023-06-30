@@ -89,8 +89,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vec.z = mesh->mNormals[i].z;
         vertex.Normal = vec;
         glm::vec4 zero = glm::vec4{0};
-        vertex.BoneIds = zero;
-        vertex.Weights = zero;
+        vertex.BoneIdsA = zero;
+        vertex.BoneIdsB = zero;
+        vertex.WeightsA = zero;
+        vertex.WeightsB = zero;
 
         if(mesh->mTextureCoords[0])
         {
@@ -124,28 +126,54 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             std::cerr << "Mesh has too many bones!"  << std::endl;
         }
 #endif 
+        unsigned int vertexCounts[vertices.size()]; 
+        for(unsigned int i = 0; i < vertices.size(); i++)
+        {
+            vertexCounts[i] = 0;
+        }
         for(unsigned int i = 0; i < mesh->mNumBones; i++)
         {
             bones.push_back(
                 Bone
                 {
                     convert(mesh->mBones[i]->mOffsetMatrix),
-                    i
+                    i,
+                    mesh->mBones[i]->mName.C_Str()
                 });
-#ifdef DEBUG
-            if(mesh->mBones[i]->mNumWeights > MAX_BONES_PER_VERTEX)
+            std::cout << mesh->mBones[i]->mNumWeights << std::endl;
+            for(unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; j++)
             {
-                std::cerr << "Mesh has too many bones per vertex!"  << std::endl;
+                float w = mesh->mBones[i]->mWeights[j].mWeight;
+                if(w != 0.0f)
+                {
+                    unsigned int v = mesh->mBones[i]->mWeights[j].mVertexId;
+                    Vertex& vert = vertices[v];
+                    unsigned int k = vertexCounts[v];
+                    vertexCounts[v]++;
+                    if(k < 4)
+                    {
+                        vert.BoneIdsA[k] = i;
+                        vert.WeightsA[k] = w;
+                    }
+                    else if(k < 8)
+                    {
+                        vert.BoneIdsB[k - 4] = i;
+                        vert.WeightsB[k - 4] = w;
+                    }
+                    else 
+                    {
+                        std::cerr << "Too many bones!!" << std::endl;
+                        std::exit(1);
+                    }
+                }
             }
-#endif 
-            for(unsigned int j = 0; j < mesh->mBones[i]->mNumWeights && j < MAX_BONES_PER_VERTEX; j++)
-            {
 
-                Vertex& vert = vertices[mesh->mBones[i]->mWeights[j].mVertexId];
-                vert.BoneIds[j] = i;
-                vert.Weights[j] = mesh->mBones[i]->mWeights[j].mWeight;
-            }
-
+        }
+        for(auto v = vertices.begin(); v != vertices.end(); v++)
+        {
+            float l = sum(v->WeightsA + v->WeightsB);
+            v->WeightsA = v->WeightsA / l;
+            v->WeightsB = v->WeightsB / l;
         }
     }
 

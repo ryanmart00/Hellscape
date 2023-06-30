@@ -5,6 +5,7 @@
 #include "glm/fwd.hpp"
 #include "glm/glm.hpp"
 #include <string>
+#include <iostream>
 #include "assimp/types.h"
 
 //*** conversions ***
@@ -13,7 +14,7 @@ static glm::vec3 convert(btVector3& vec)
     return glm::vec3{vec.x(), vec.y(), vec.z()};
 }
 
-static btVector3 convert(glm::vec3 vec)
+static btVector3 convert(glm::vec3& vec)
 {
     return btVector3{vec.x, vec.y, vec.z};
 }
@@ -21,10 +22,27 @@ static btVector3 convert(glm::vec3 vec)
 static glm::mat4 convert(aiMatrix4x4& mat)
 {
     //TODO: is this transposed?
-    return glm::mat4{mat.a1, mat.a2, mat.a3, mat.a4, mat.b1, mat.b2, mat.b3, mat.b4, mat.c1, mat.c2, mat.c3, mat.c4, mat.d1, mat.d2, mat.d3, mat.d4};
+    return glm::transpose(glm::mat4{mat.a1, mat.a2, mat.a3, mat.a4, mat.b1, mat.b2, mat.b3, mat.b4, mat.c1, mat.c2, mat.c3, mat.c4, mat.d1, mat.d2, mat.d3, mat.d4});
+}
+
+static float sum(const glm::vec4& vec)
+{
+    return vec.x + vec.y + vec.z + vec.w;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const glm::mat4& mat)
+{
+    os << mat[0][0] << "," << mat[0][1] << "," << mat[0][2] << "," << mat[0][3] << std::endl;
+    os << mat[1][0] << "," << mat[1][1] << "," << mat[1][2] << "," << mat[1][3] << std::endl;
+    os << mat[2][0] << "," << mat[2][1] << "," << mat[2][2] << "," << mat[2][3] << std::endl;
+    os << mat[3][0] << "," << mat[3][1] << "," << mat[3][2] << "," << mat[3][3] << std::endl;
+    
+    return os;
 }
 
 const glm::vec3 UP{0.0f, 1.0f, 0.0f};
+const glm::vec3 RIGHT{1.0f, 0.0f, 0.0f};
+const glm::vec3 FORWARD = glm::cross(UP,RIGHT);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -75,8 +93,8 @@ const float DIR_LIGHT_BACKWARD_OFFSET = (FAR_SHADOW_CLIPPING_PLANE-NEAR_SHADOW_C
 
 
 //*** Bone caps ***
-const unsigned int MAX_BONES_PER_VERTEX = 4;
-const unsigned int MAX_BONES = 10;
+const unsigned int MAX_BONES_PER_VERTEX = 8;
+const unsigned int MAX_BONES = 20;
 
 
 #endif

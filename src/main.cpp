@@ -295,7 +295,7 @@ int main()
             1.0f, 0.09f, 0.032f
         });
 	Shader shader(dirLights.size(), pointLights.size(), 
-            "assets/gl/object.vs", "assets/gl/object.fs");
+            "assets/gl/object_debug.vs", "assets/gl/object_debug.fs");
 
     Shader lampShader(0,0, "assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
@@ -345,7 +345,7 @@ int main()
 
     // Bone Test
     trans.setIdentity();
-    trans.setOrigin(btVector3{10.0f,11.0f,10.0f});
+    trans.setOrigin(btVector3{10.0f,-30.0f,10.0f});
     StaticObject* boneTest = new StaticObject{nullptr, manager, 
         "assets/Models/door down angled.fbx",
         "assets/Models/door down angled.fbx", trans};
@@ -359,6 +359,18 @@ int main()
     {
         BaseObject* obj = *i;
         obj->hardInit(world);
+    }
+    std::cout << *(boneTest->model_) << std::endl;
+    for(auto i = boneTest->model_->meshes_.begin(); i != boneTest->model_->meshes_.end(); i++)
+    {
+
+        std::cout << "Mesh" << std::endl;
+        for(auto j = i->bones_.begin(); j != i->bones_.end(); j++)
+        {
+            std::cout << j->name << std::endl;
+            std::cout << j->offset << std::endl;
+        }
+
     }
 
 
@@ -383,9 +395,8 @@ int main()
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        glm::mat4 bone = glm::identity<glm::mat4>();
-        glm::translate(bone, glm::vec3{0.0,0.0,sin(glfwGetTime())});
-        boneTest->model_->meshes_[0].bones_[0].offset = bone;
+        boneTest->model_->meshes_[0].bones_[0].offset *= glm::mat4(glm::angleAxis(dt, UP));
+        boneTest->model_->meshes_[0].bones_[1].offset *= glm::mat4(glm::angleAxis(2*dt, FORWARD));
 
         // bullet physics
         world->stepSimulation(dt);
