@@ -49,6 +49,7 @@ void Dynamics::debugDraw(glm::mat4 proj, glm::mat4 view)
 {
     debug_->SetMatrices(view, proj);
     world_->debugDrawWorld();
+    debug_->drawLinesWorld();
 }
 #endif
 
