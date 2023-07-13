@@ -1,8 +1,8 @@
 #include "mesh.hpp"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-    std::vector<Texture*> textures, glm::vec3 diffuse, glm::vec3 specular, float shininess)
-    : vertices_{vertices}, indices_{indices}, textures_{textures}, diffuse_{diffuse},
+    std::vector<Texture*> textures, std::vector<Bone> bones, glm::vec3 diffuse, glm::vec3 specular, float shininess)
+    : vertices_{vertices}, indices_{indices}, textures_{textures}, bones_{bones}, diffuse_{diffuse},
         specular_{specular}, shininess_{shininess}
 {
     // We call setupmesh later with a gl environment
@@ -42,6 +42,23 @@ void Mesh::setupMesh()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
         (void*) offsetof(Vertex, TexCoords));
 
+    // bone ids (for now we have 8 but could increase)
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, sizeof(Vertex), 
+            (void*) offsetof(Vertex, BoneIdsA));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_INT, GL_FALSE, sizeof(Vertex), 
+            (void*) offsetof(Vertex, BoneIdsB));
+
+
+    // bone weights
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 
+            (void*) offsetof(Vertex, WeightsA));
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 
+            (void*) offsetof(Vertex, WeightsB));
+
     glBindVertexArray(0);
 }
 
@@ -78,6 +95,12 @@ void Mesh::Draw(Shader& shader, int numShadowMaps)
     
     glActiveTexture(GL_TEXTURE0);
 
+    // set bone offsets
+    for(int i = 0; i < bones_.size(); i++)
+    {
+        shader.setMat4("bones[" + std::to_string(i) + "]", bones_[i].offset);
+    }
+
     // draw mesh
     glBindVertexArray(VAO_);
     glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
@@ -91,8 +114,18 @@ std::ostream& operator<<(std::ostream& os, const Mesh& m)
     for(auto iter = m.vertices_.begin(); iter != m.vertices_.end(); iter++)
     {
         os << i << ":";
-        os << iter->Position.x << " " << iter->Position.y << " " << iter->Position.z << ":";
-        os << iter->Normal.x << " " << iter->Normal.y << " " << iter->Normal.z << ":" 
+        os << iter->Position.x << " " << iter->Position.y << " " << iter->Position.z << " : ";
+        os << iter->Normal.x << " " << iter->Normal.y << " " << iter->Normal.z << " : ";
+        os << iter->BoneIdsA.x << "-" << iter->WeightsA.x << " " 
+            << iter->BoneIdsA.y << "-" << iter->WeightsA.y << " " 
+            << iter->BoneIdsA.z << "-" << iter->WeightsA.z << " " 
+            << iter->BoneIdsA.w << "-" << iter->WeightsA.w << " : ";
+        os << iter->BoneIdsB.x << "-" << iter->WeightsB.x << " " 
+            << iter->BoneIdsB.y << "-" << iter->WeightsB.y << " " 
+            << iter->BoneIdsB.z << "-" << iter->WeightsB.z << " " 
+            << iter->BoneIdsB.w << "-" << iter->WeightsB.w << " : ";
+        os  << iter->WeightsA.x + iter->WeightsA.y + iter->WeightsA.z + iter->WeightsA.w
+            + iter->WeightsB.x + iter->WeightsB.y + iter->WeightsB.z + iter->WeightsB.w
             << std::endl;
         i++;
     }

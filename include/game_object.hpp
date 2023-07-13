@@ -106,11 +106,11 @@ public:
 
     virtual void softDestruct(Dynamics*);
 
+    Model* model_;
 protected:
     virtual void draw(Shader& shader, int numShadowMaps);
     virtual void update(Dynamics*, float);
 
-    Model* model_;
     btRigidBody* rigidBody_;
     btMotionState* motion_;
     std::string modelPath_;

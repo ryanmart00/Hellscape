@@ -295,7 +295,7 @@ int main()
             1.0f, 0.09f, 0.032f
         });
 	Shader shader(dirLights.size(), pointLights.size(), 
-            "assets/gl/object.vs", "assets/gl/object.fs");
+            "assets/gl/object_debug.vs", "assets/gl/object_debug.fs");
 
     Shader lampShader(0,0, "assets/gl/lamp.vs", "assets/gl/lamp.fs");
 
@@ -314,13 +314,13 @@ int main()
     glfwSetCursorPosCallback(window, InputManager::mouseCallback);
 
     btTransform trans;
+    trans.setIdentity();
     // After we generate shaders load objects
     trans.setOrigin(btVector3{10.0f,-100.0f,10.0f});
-    trans.setRotation(btQuaternion{btVector3{1,0,0}, glm::radians(-90.0f)});
     
     StaticObject* floor = new StaticObject{nullptr, manager, 
-        "../assets/Models/Hellscape Map Body Sample Dense Smoth.obj",
-        "assets/Models/Hellscape Map Body Sample Dense Smoth.obj", trans};    
+        "assets/Models/Island/object.dae",
+        "assets/Models/Island/object.dae", trans};    
     
     floor->softInit();
     objects.push_back(floor);
@@ -337,11 +337,19 @@ int main()
         btTransform trans;
         trans.setIdentity();
         trans.setOrigin(btVector3{0, 10.0f*i, 0});
-        dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 10,
+        dynamicCubes[i] = new DynamicObject{nullptr, manager, cubeShape, 100,
             "assets/Models/cube/cube.obj", trans};    
         dynamicCubes[i]->softInit();
         objects.push_back(dynamicCubes[i]);
     }
+
+    // Bone Test
+    trans.setIdentity();
+    trans.setOrigin(btVector3{10.0f,-30.0f,10.0f});
+    StaticObject* boneTest = new StaticObject{nullptr, manager, 
+        "assets/Models/door down angled.fbx",
+        "assets/Models/door down angled.fbx", trans};
+    objects.push_back(boneTest);
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -351,6 +359,18 @@ int main()
     {
         BaseObject* obj = *i;
         obj->hardInit(world);
+    }
+    std::cout << *(boneTest->model_) << std::endl;
+    for(auto i = boneTest->model_->meshes_.begin(); i != boneTest->model_->meshes_.end(); i++)
+    {
+
+        std::cout << "Mesh" << std::endl;
+        for(auto j = i->bones_.begin(); j != i->bones_.end(); j++)
+        {
+            std::cout << j->name << std::endl;
+            std::cout << j->offset << std::endl;
+        }
+
     }
 
 
@@ -374,6 +394,9 @@ int main()
         float currentFrame = glfwGetTime();
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        boneTest->model_->meshes_[0].bones_[0].offset *= glm::mat4(glm::angleAxis(dt, UP));
+        boneTest->model_->meshes_[0].bones_[1].offset *= glm::mat4(glm::angleAxis(2*dt, FORWARD));
 
         // bullet physics
         world->stepSimulation(dt);

@@ -72,6 +72,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture*> textures;
+    std::vector<Bone> bones;
 
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -87,6 +88,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vec.y = mesh->mNormals[i].y;
         vec.z = mesh->mNormals[i].z;
         vertex.Normal = vec;
+        glm::vec4 zero = glm::vec4{0};
+        vertex.BoneIdsA = zero;
+        vertex.BoneIdsB = zero;
+        vertex.WeightsA = zero;
+        vertex.WeightsB = zero;
 
         if(mesh->mTextureCoords[0])
         {
@@ -111,6 +117,66 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             indices.push_back(face.mIndices[j]);
         }
     }
+    // process bones
+    if(mesh->HasBones())
+    {
+#ifdef DEBUG
+        if(mesh->mNumBones > MAX_BONES)
+        {
+            std::cerr << "Mesh has too many bones!"  << std::endl;
+        }
+#endif 
+        unsigned int vertexCounts[vertices.size()]; 
+        for(unsigned int i = 0; i < vertices.size(); i++)
+        {
+            vertexCounts[i] = 0;
+        }
+        for(unsigned int i = 0; i < mesh->mNumBones; i++)
+        {
+            bones.push_back(
+                Bone
+                {
+                    convert(mesh->mBones[i]->mOffsetMatrix),
+                    i,
+                    mesh->mBones[i]->mName.C_Str()
+                });
+            std::cout << mesh->mBones[i]->mNumWeights << std::endl;
+            for(unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; j++)
+            {
+                float w = mesh->mBones[i]->mWeights[j].mWeight;
+                if(w != 0.0f)
+                {
+                    unsigned int v = mesh->mBones[i]->mWeights[j].mVertexId;
+                    Vertex& vert = vertices[v];
+                    unsigned int k = vertexCounts[v];
+                    vertexCounts[v]++;
+                    if(k < 4)
+                    {
+                        vert.BoneIdsA[k] = i;
+                        vert.WeightsA[k] = w;
+                    }
+                    else if(k < 8)
+                    {
+                        vert.BoneIdsB[k - 4] = i;
+                        vert.WeightsB[k - 4] = w;
+                    }
+                    else 
+                    {
+                        std::cerr << "Too many bones!!" << std::endl;
+                        std::exit(1);
+                    }
+                }
+            }
+
+        }
+        for(auto v = vertices.begin(); v != vertices.end(); v++)
+        {
+            float l = sum(v->WeightsA + v->WeightsB);
+            v->WeightsA = v->WeightsA / l;
+            v->WeightsB = v->WeightsB / l;
+        }
+    }
+
 
     glm::vec3 diffuse;
     glm::vec3 specular;
@@ -143,7 +209,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
-    Mesh m{vertices, indices, textures, diffuse, specular, shininess};
+    Mesh m{vertices, indices, textures, bones, diffuse, specular, shininess};
 
     return m;
 

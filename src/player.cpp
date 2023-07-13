@@ -57,36 +57,41 @@ void Player::pollInput(GLFWwindow *window, float)
 	}
 	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-        glm::vec3 v = 10*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
+        glm::vec3 v = 20*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
     }
 	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 //        cam.position_ -= glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 5.0f;
-        glm::vec3 v = -10*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
+        glm::vec3 v = -20*PLAYER_MASS * glm::cross(UP,quatRight(cam_)) ;
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 	}
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-        glm::vec3 v = -10*PLAYER_MASS * quatRight(cam_);
+        glm::vec3 v = -20*PLAYER_MASS * quatRight(cam_);
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 //        cam.position_ -= cam.getRight() * dt * 7.0f;
 	}
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-        glm::vec3 v = 10*PLAYER_MASS * quatRight(cam_);
+        glm::vec3 v = 20*PLAYER_MASS * quatRight(cam_);
         rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 //        cam.position_ += cam.getRight() * dt * 7.0f;
 	}
-    if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS) 
+    if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && grounded) 
     {
 //        cam.position_ += glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
 
-        rigidBody_->applyCentralForce(PLAYER_MASS*btVector3{0,100,0});
+        rigidBody_->applyCentralImpulse(PLAYER_MASS*btVector3{0,5,0});
     }
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
     {
 //        cam.position_ -= glm::vec3(0.0f,1.0f,0.0f) * dt * 7.0f;
+    }
+    if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        std::cout << "(" << rigidBody_->getCenterOfMassPosition().getX() << "," << rigidBody_->getCenterOfMassPosition().getY() << "," 
+            << rigidBody_->getCenterOfMassPosition().getZ() << ")" << std::endl;
     }
 }
 
@@ -106,8 +111,9 @@ const glm::vec3 Player::getCameraPos()
 void Player::update(Dynamics* world, float)
 {
     // Spring stuff
+    const float dist = PLAYER_HIEGHT/2.0f + 1;
     const btVector3& from = rigidBody_->getCenterOfMassPosition();
-    const btVector3 to = from + btVector3{0,-2.0f,0};
+    const btVector3 to = from + btVector3{0,-dist,0};
 
     // Theoretically this will give us the first non-player hitbox
     ObjectRayCallback callback{rigidBody_};
@@ -115,28 +121,32 @@ void Player::update(Dynamics* world, float)
     world->world_->rayTest(from, to, callback);
     if(callback.hasHit())
     {
-        const float pw = 10;
-        const float pz = .9f;
-        const float poff = 0.3f;
+        grounded = true;
+        const float pw = 20;
+        const float pz = .7f;
+        const float poff = PLAYER_HIEGHT/2.0f + 0.5f;
 
-//        std::cerr << callback.m_closestHitFraction << std::endl;
         const btVector3 normal = callback.m_hitNormalWorld;
 
 
-        rigidBody_->applyCentralForce(PLAYER_MASS*
-            ((0.3f - callback.m_closestHitFraction)*pw*pw
-            - 2*pw*pz* normal.dot(rigidBody_->getInterpolationLinearVelocity()))*normal);
-
         const btVector3 playerUp = rigidBody_->getWorldTransform().getBasis() * btVector3{0,1,0};
-        rigidBody_->applyTorque(playerUp.cross(normal));
 
-        rigidBody_->setAngularFactor(playerUp);
+
+        rigidBody_->applyCentralForce(PLAYER_MASS*
+            ((poff - dist*callback.m_closestHitFraction)*pw*pw
+            - 2*pw*pz* playerUp.dot(rigidBody_->getInterpolationLinearVelocity()))*playerUp);
+
+        rigidBody_->applyTorque(10*PLAYER_MASS*playerUp.cross(normal));
+
+        //rigidBody_->setAngularFactor(playerUp);
     }
-    else
+    else 
     {
-        rigidBody_->applyCentralForce(-PLAYER_MASS* 10*btVector3{0,1,0});
+        grounded = false;
+        rigidBody_->applyCentralForce(-PLAYER_MASS* 20*btVector3{0,1,0});
     }
-    rigidBody_->applyCentralForce(-PLAYER_MASS* btVector3
+
+    rigidBody_->applyCentralForce(-10* PLAYER_MASS* btVector3
     {
         rigidBody_->getInterpolationLinearVelocity().x(), 
         0, 
