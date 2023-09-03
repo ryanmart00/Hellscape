@@ -312,6 +312,7 @@ int main()
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, InputManager::mouseCallback);
+    glfwSetMouseButtonCallback(window, InputManager::mouseButtonCallback);
 
     btTransform trans;
     trans.setIdentity();
@@ -328,9 +329,6 @@ int main()
     const int NUMCUBES = 10;
     DynamicObject* dynamicCubes[NUMCUBES];
     btCollisionShape* cubeShape = new btBoxShape{btVector3{1,1,1}};
-
-
-
 
     for(int i = 0; i < NUMCUBES; ++i)
     {
@@ -472,9 +470,14 @@ int main()
         float sy = 2.0 / SCR_HEIGHT;
 
         FT_Set_Pixel_Sizes(face, 0, 48);
+        // display FPS counter
         renderText(face, text, (std::string("FPS: ")
                     + std::to_string((int)(1/dt))).c_str(),
                     -1 + 8 * sx, 1 - 50 * sy, sx, sy);
+        // display point counter
+        renderText(face, text, 
+                    (std::string("Points: ") + std::to_string(player->getPoints())).c_str(),
+                    0, 1 - 50 * sy, sx, sy);
 
     #ifdef DEBUG
         world->debugDraw(projection, view);
