@@ -220,8 +220,7 @@ GLuint chairVAO = 0;
 GLuint chairVBO = 0;
 std::vector<glm::vec3> generateCrosshair(glm::vec3 cameraPos)
 {
-    // shitty hack to render a circle in the center of the screen, ideally
-    // in front of the player
+    // i imagine we'll want to move to a texture eventually
     const int NUM_VERTS = 100;
     const float RADIUS = 0.30f;
     const float ANGLE_INCREMENT = 2*M_PI / NUM_VERTS;
@@ -274,7 +273,7 @@ void renderCrosshair(Shader& shader, glm::vec3 cameraPos)
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * crosshairData.size(), &crosshairData[0], GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, crosshairData.size());
     glBindVertexArray(0);
-    //glActiveTexture(0);
+    glActiveTexture(0);
 }
 
 int main()
