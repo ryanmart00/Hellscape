@@ -42,7 +42,6 @@ public:
     virtual void pollInput(GLFWwindow*, float dt);
     virtual int getPoints();
 
-
 protected:
     virtual void update(Dynamics*, float);
 

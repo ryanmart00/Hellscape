@@ -15,6 +15,7 @@
 #include "camera.hpp"
 #include "shader.hpp"
 #include "model.hpp"
+#include <math.h>
 #include "asset_manager.hpp"
 
 #include <ft2build.h>
@@ -215,6 +216,66 @@ void renderText(FT_Face& face, Shader& shader, const char* text, float x, float 
 
 }
 
+GLuint chairVAO = 0;
+GLuint chairVBO = 0;
+std::vector<glm::vec3> generateCrosshair(glm::vec3 cameraPos)
+{
+    // shitty hack to render a circle in the center of the screen, ideally
+    // in front of the player
+    const int NUM_VERTS = 100;
+    const float RADIUS = 0.30f;
+    const float ANGLE_INCREMENT = 2*M_PI / NUM_VERTS;
+    int triangleCount = NUM_VERTS - 2;
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> temp;
+
+    // positions
+    for (int i = 0; i < NUM_VERTS; i++)
+    {
+        float currentAngle = ANGLE_INCREMENT * i;
+        float x = cameraPos[0] + RADIUS * cos(glm::radians(currentAngle));
+        float y = cameraPos[1] + RADIUS * sin(glm::radians(currentAngle));
+        float z = cameraPos[2] + 0.0f;
+        temp.push_back(glm::vec3(x, y, z));
+    }
+
+    for (int i = 0; i < triangleCount; i++)
+    {
+        vertices.push_back(temp[0]);
+        vertices.push_back(temp[i + 1]);
+        vertices.push_back(temp[i + 2]);
+    }
+
+    // building this vector every main loop iteration doesn't seem great
+    return vertices;
+}
+
+void renderCrosshair(Shader& shader, glm::vec3 cameraPos)
+{
+    std::vector<glm::vec3> crosshairData = generateCrosshair(cameraPos);
+
+    if (chairVAO == 0)
+    {
+        glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        shader.use();
+
+        glGenVertexArrays(1, &chairVAO);
+        glGenBuffers(1, &chairVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, chairVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * crosshairData.size(), &crosshairData[0], GL_DYNAMIC_DRAW);
+        //glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+        glEnableVertexAttribArray(0);
+    }
+
+    glBindVertexArray(chairVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, chairVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * crosshairData.size(), &crosshairData[0], GL_DYNAMIC_DRAW);
+    glDrawArrays(GL_TRIANGLES, 0, crosshairData.size());
+    glBindVertexArray(0);
+    //glActiveTexture(0);
+}
 
 int main()
 {
@@ -371,7 +432,6 @@ int main()
 
     }
 
-
     Model& cube = *manager->get("assets/Models/cube/cube.obj");
 
     float dt = 0.0f;
@@ -448,7 +508,7 @@ int main()
         {
             (*i)->Draw(shader, dirLights.size() + pointLights.size());
         }
-        
+
         // lamp
         lampShader.use();
         lampShader.setMat4("projection", projection);
@@ -478,6 +538,8 @@ int main()
         renderText(face, text, 
                     (std::string("Points: ") + std::to_string(player->getPoints())).c_str(),
                     0, 1 - 50 * sy, sx, sy);
+
+        renderCrosshair(shader, player->getCameraPos());
 
     #ifdef DEBUG
         world->debugDraw(projection, view);
