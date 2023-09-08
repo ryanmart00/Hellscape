@@ -51,7 +51,7 @@ private:
     double lastX;
     double lastY;
     bool grounded = false;
-    int points = 0;
+    int points = 0; // temporary concept to debug shooting
     void incrementPoints();
 };
 
