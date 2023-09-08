@@ -14,7 +14,7 @@ On Linux:
 - make a bin 
 - run cmake /path/to/Hellscape/
 - run make
-- may need libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+- may need libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl-dev
 
 On Windows:
 - Install MSYS2 (for example): https://www.msys2.org/ Avoid installing MSYS2 in a folder with spaces in its name! (This will cause problems!)
