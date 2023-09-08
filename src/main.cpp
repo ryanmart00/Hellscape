@@ -27,6 +27,7 @@
 #include "player.hpp"
 #include "constants.hpp"
 #include "light.hpp"
+#include "settings.hpp"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
@@ -43,6 +44,21 @@ glm::vec3 getCenter()
 Dynamics* world;
 
 AssetManager* manager;
+
+Settings* settings;
+
+GameState state;
+Input* objects_[NUM_STATES];    
+
+void mouseCallback(GLFWwindow* window, double X, double Y)
+{
+    objects_[state]->mouseCallback(window, X, Y);
+}
+
+void pollInput(GLFWwindow* window, float dt)
+{
+    objects_[state]->pollInput(window,dt);
+}
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
@@ -72,7 +88,6 @@ void renderQuad()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
-
 
 /**
  * Initializes the GLFW Window and starts up GLAD
@@ -218,6 +233,7 @@ void renderText(FT_Face& face, Shader& shader, const char* text, float x, float 
 
 int main()
 {
+    state = GameState::PLAYING;
     //GLFW    
     GLFWwindow* window = initWindow();
     
@@ -303,15 +319,21 @@ int main()
         btTransform trans;
         trans.setIdentity();
         trans.setOrigin(btVector3{10.0f,20.0f,10.0f});
-        player = new Player{manager, trans, glm::vec3{0,0,1}, UP};
+        player = new Player{manager, trans, glm::vec3{0,0,1}, UP, state};
         player->softInit();
         objects.push_back(player);
         // Add player's processInputs to the input managers
-        InputManager::objects_[PLAYER_INPUT_INDEX] = player;
+        objects_[GameState::PLAYING] = player;
+    }
+
+    // Settings input manager
+    {
+        settings = new Settings(state);
+        objects_[GameState::SETTINGS] = settings;
     }
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, InputManager::mouseCallback);
+    glfwSetCursorPosCallback(window, mouseCallback);
 
     btTransform trans;
     trans.setIdentity();
@@ -379,6 +401,7 @@ int main()
     float dt = 0.0f;
     float lastFrame = 0.0f;
 
+    
     //projection: generates frustum	
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 
         ((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
@@ -395,97 +418,127 @@ int main()
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        boneTest->model_->meshes_[0].bones_[0].offset *= glm::mat4(glm::angleAxis(dt, UP));
-        boneTest->model_->meshes_[0].bones_[1].offset *= glm::mat4(glm::angleAxis(2*dt, FORWARD));
+        std::cout << state << std::endl;
+        switch(state)
+        {
+            case GameState::PLAYING:
+        {
+            boneTest->model_->meshes_[0].bones_[0].offset *= glm::mat4(glm::angleAxis(dt, UP));
+            boneTest->model_->meshes_[0].bones_[1].offset *= glm::mat4(glm::angleAxis(2*dt, FORWARD));
 
-        // bullet physics
-        world->stepSimulation(dt);
+            // bullet physics
+            world->stepSimulation(dt);
+                
+            // Update objects
+            for(auto i = objects.begin(); i != objects.end(); i++)
+            {
+                (*i)->Update(world, dt);
+            }
             
-        // Update objects
-        for(auto i = objects.begin(); i != objects.end(); i++)
-        {
-            (*i)->Update(world, dt);
-        }
+
+            //Clear
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            // Compute shadows
+            for(int i = 0; i < (int)dirLights.size(); i++)
+            {
+                dirLights.at(i).renderShadows(objects);
+            }
+            for(int i = 0; i < (int)pointLights.size(); i++)
+            {
+                pointLights.at(i).renderShadows(objects);
+            }
+
+            //Reset Viewport Size and clear again
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glViewport(0,0, SCR_WIDTH, SCR_HEIGHT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            //Draw
+            shader.use();
+
+            // Apply any changes to lights
+            for(int i = 0; i < (int)dirLights.size(); i++)
+            {
+                dirLights.at(i).updateShader(shader, i);
+            }
+            for(int i = 0; i < (int)pointLights.size(); i++)
+            {
+                pointLights.at(i).updateShader(shader, i, dirLights.size());
+            }
+            
+            //view: the inverse transform of the camera's local transformation
+            glm::mat4 view = player->getCameraView();
+            shader.setMat4("projection", projection);
+            shader.setMat4("view", view);
+            shader.setVec3("viewPos", player->getCameraPos());
+
+            // Render the objects
+            for(auto i = objects.begin(); i != objects.end(); i++)
+            {
+                (*i)->Draw(shader, dirLights.size() + pointLights.size());
+            }
+            
+            // lamp
+            lampShader.use();
+            lampShader.setMat4("projection", projection);
+            lampShader.setMat4("view", view);
         
+            for (unsigned int i = 0; i < pointLights.size(); i++) 
+            {
+                glm::mat4 model{1.0f};
+                model = glm::translate(model, pointLights[i].position_);
+                model = glm::scale(model, glm::vec3{0.2f});
+                lampShader.setMat4("model", model);
+                cube.Draw(lampShader, 0);
+            }
 
-		//Clear
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            //Show FPS
+            text.use();
+            text.setVec4("color", glm::vec4{1,1,1,.5f});
+            float sx = 2.0 / SCR_WIDTH;
+            float sy = 2.0 / SCR_HEIGHT;
 
-        // Compute shadows
-        for(int i = 0; i < (int)dirLights.size(); i++)
-        {
-            dirLights.at(i).renderShadows(objects);
+            FT_Set_Pixel_Sizes(face, 0, 48);
+            renderText(face, text, (std::string("FPS: ")
+                        + std::to_string((int)(1/dt))).c_str(),
+                        -1 + 8 * sx, 1 - 50 * sy, sx, sy);
+
+        #ifdef DEBUG
+            world->debugDraw(projection, view);
+        #endif 
         }
-        for(int i = 0; i < (int)pointLights.size(); i++)
-        {
-            pointLights.at(i).renderShadows(objects);
-        }
+        break;
+        case GameState::SETTINGS:    
+            std::cout << "Settings" << std::endl;
+            //Clear
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            //Reset Viewport Size and clear again
+            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glViewport(0,0, SCR_WIDTH, SCR_HEIGHT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            //Show FPS
+            text.use();
+            text.setVec4("color", glm::vec4{1,1,1,.5f});
+            float sx = 2.0 / SCR_WIDTH;
+            float sy = 2.0 / SCR_HEIGHT;
 
-        //Reset Viewport Size and clear again
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glViewport(0,0, SCR_WIDTH, SCR_HEIGHT);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            FT_Set_Pixel_Sizes(face, 0, 48);
+            renderText(face, text, (std::string("FPS: ")
+                        + std::to_string((int)(1/dt))).c_str(),
+                        -1 + 8 * sx, 1 - 50 * sy, sx, sy);
 
-		//Draw
-        shader.use();
 
-        // Apply any changes to lights
-        for(int i = 0; i < (int)dirLights.size(); i++)
-        {
-            dirLights.at(i).updateShader(shader, i);
-        }
-        for(int i = 0; i < (int)pointLights.size(); i++)
-        {
-            pointLights.at(i).updateShader(shader, i, dirLights.size());
-        }
-		
-		//view: the inverse transform of the camera's local transformation
-		glm::mat4 view = player->getCameraView();
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
-        shader.setVec3("viewPos", player->getCameraPos());
-
-        // Render the objects
-        for(auto i = objects.begin(); i != objects.end(); i++)
-        {
-            (*i)->Draw(shader, dirLights.size() + pointLights.size());
-        }
-        
-        // lamp
-        lampShader.use();
-        lampShader.setMat4("projection", projection);
-        lampShader.setMat4("view", view);
-    
-        for (unsigned int i = 0; i < pointLights.size(); i++) 
-        {
-            glm::mat4 model{1.0f};
-            model = glm::translate(model, pointLights[i].position_);
-            model = glm::scale(model, glm::vec3{0.2f});
-            lampShader.setMat4("model", model);
-            cube.Draw(lampShader, 0);
+            break;
         }
 
-        //Show FPS
-        text.use();
-        text.setVec4("color", glm::vec4{1,1,1,.5f});
-        float sx = 2.0 / SCR_WIDTH;
-        float sy = 2.0 / SCR_HEIGHT;
-
-        FT_Set_Pixel_Sizes(face, 0, 48);
-        renderText(face, text, (std::string("FPS: ")
-                    + std::to_string((int)(1/dt))).c_str(),
-                    -1 + 8 * sx, 1 - 50 * sy, sx, sy);
-
-    #ifdef DEBUG
-        world->debugDraw(projection, view);
-    #endif 
     
 		//Handle events
 		glfwSwapBuffers(window);
 		glfwPollEvents();    
         
 		//poll inputs
-		InputManager::pollInput(window, dt);
+		pollInput(window, dt);
 	}
 
     player->softDestruct(world);

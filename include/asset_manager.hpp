@@ -89,37 +89,32 @@ private:
      *  - a pointer to the mouse callback in mouseCallbacks_
      *  - a pointer to the inputPoller in inputPollers_
      *      Input pollers 
+     *
+     *  Kinda hacky but for now just so that things don't get wonky, InputManager will also 
+     *  handle game state: the idea is that there is probably a unique input handler for each 
+     *  game state right?
      */
-namespace InputManager
+const unsigned int NUM_STATES = 2;
+enum GameState
 {
-    class Input
-    {
-    public:
-        virtual void mouseCallback(GLFWwindow*, double, double) = 0;
-        virtual void pollInput(GLFWwindow*, float) = 0;
-    };
-
-    static int currentIndex = 0;
-    static Input* objects_[NUM_INPUT_MANAGERS];    
-
-    static void mouseCallback(GLFWwindow* window, double X, double Y)
-    {
-        if(objects_[currentIndex])
-        {
-            objects_[currentIndex]->mouseCallback(window, X, Y);
-        }
-    }
-
-    static void pollInput(GLFWwindow* window, float dt)
-    {
-        
-        if(objects_[currentIndex])
-        {
-            objects_[currentIndex]->pollInput(window,dt);
-        }
-    }
-
-    
+    PLAYING = 0,
+    SETTINGS = 1 
 };
+
+
+class Input
+{
+public:
+    GameState& state_;
+
+    Input(GameState& state)
+        : state_{state}
+    {
+    };
+    virtual void mouseCallback(GLFWwindow*, double, double) = 0;
+    virtual void pollInput(GLFWwindow*, float) = 0;
+
+};
+
 
 #endif

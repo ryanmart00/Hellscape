@@ -23,13 +23,13 @@ static glm::vec3 quatUp(glm::quat q)
 }
 
 
-class Player : public DynamicObject, public InputManager::Input
+class Player : public DynamicObject, public Input
 {
 public:
 
     Player() = delete;
     Player(const Player&) = delete;
-    Player(AssetManager*, btTransform, glm::vec3, glm::vec3); 
+    Player(AssetManager*, btTransform, glm::vec3, glm::vec3, GameState&); 
     virtual ~Player();
 
     const glm::mat4 getCameraView();

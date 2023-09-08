@@ -1,9 +1,9 @@
 #include "player.hpp"
 
-Player:: Player(AssetManager* manager, btTransform transform, 
-    glm::vec3 camDirection, glm::vec3 camUp)
+Player::Player(AssetManager* manager, btTransform transform, 
+    glm::vec3 camDirection, glm::vec3 camUp, GameState& state)
     : DynamicObject{nullptr, manager, new btCapsuleShape{PLAYER_RADIUS,PLAYER_HIEGHT},
-    PLAYER_MASS, PLAYER_MODEL_PATH, transform}
+    PLAYER_MASS, PLAYER_MODEL_PATH, transform} , Input{state}
 {
     cam_ = glm::quatLookAt(camDirection, camUp);
 }
@@ -53,7 +53,7 @@ void Player::pollInput(GLFWwindow *window, float)
 {
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
-		glfwSetWindowShouldClose(window, true);
+        state_ = GameState::SETTINGS;
 	}
 	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{

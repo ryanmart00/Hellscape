@@ -47,8 +47,6 @@ const glm::vec3 FORWARD = glm::cross(UP,RIGHT);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const unsigned int NUM_INPUT_MANAGERS = 1;
-const unsigned int PLAYER_INPUT_INDEX = 0;
 
 const std::string PLAYER_MODEL_PATH = "assets/Models/Player/player.obj";
 const float PLAYER_MASS = 50; // kg
