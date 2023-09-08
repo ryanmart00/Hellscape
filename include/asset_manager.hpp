@@ -112,6 +112,7 @@ public:
     {
     };
     virtual void mouseCallback(GLFWwindow*, double, double) = 0;
+    virtual void mouseButtonCallback(GLFWwindow*, int, int, int) = 0;
     virtual void pollInput(GLFWwindow*, float) = 0;
 
 };

@@ -16,8 +16,33 @@ Player::~Player()
     delete shape_;
 }
 
+void Player::incrementPoints()
+{
+    points++; // ;)
+}
+
+int Player::getPoints()
+{
+    return points;
+}
+
+void Player::mouseButtonCallback(GLFWwindow*, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        // create ray cast
+        // check collisions 
+        // do something -- increase a counter?
+        incrementPoints();
+        return;
+    }
+
+    return;
+}
+
 void Player::mouseCallback(GLFWwindow*, double xpos, double ypos)
 {
+    // update camera position
     if(firstMouse)
     {
         lastX = xpos;

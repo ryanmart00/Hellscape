@@ -1,0 +1,21 @@
+- gun mechanics
+  - general design
+    - hitscan sniper rifles. a few zoom levels. questions about implementation of sensitivity changes
+  - implementation outline todo
+    - implement event handler for left clicking
+    - implement ray tracing for hit scanning
+    - (will) it looks like we have a lib for projectile weapons?
+      - turns out _bullet_ already implements raytracing calculations  
+    - implement some dummies to shoot for debugging purposes
+      - model dummies
+      - place them
+      - implement logic to detect if they've been hit by raytracing 
+    - model and implement graphics crosshair
+  - graphics and feel
+    - what response do we want for shooting? for hitting?
+    - is anyone up to build a sniper model in blender? =P
+- audio
+- networking
+  - connection and setting environment
+- graphics
+- map 

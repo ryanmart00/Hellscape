@@ -14,6 +14,7 @@ On Linux:
 - make a bin 
 - run cmake /path/to/Hellscape/
 - run make
+- may need libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl-dev
 
 On Windows:
 - Install MSYS2 (for example): https://www.msys2.org/ Avoid installing MSYS2 in a folder with spaces in its name! (This will cause problems!)
@@ -22,6 +23,10 @@ On Windows:
 - You will probably also need some graphics drivers, but this is system dependent. To search for drivers run ```pacman -Ss mesa``` and use pacman -S with the exact name of the one that matches your system
 - after moving into the Hellscape folder run ```mkdir bin && cd bin```
 - To compile the code: ```cmake -G "Unix Makefiles" .. -DCMAKE_SYSTEM_NAME=Windows && make```
+
+Installation Notes
+- This project depends on linked github repos, be sure to clone like `git clone --recurse-submodules ...`
+- Rough set of dependencies: OpenGL, Cpp compiler (g++, clang), glfw (glfw is also linked repo, so you may not need to install this seperately)
 
 
 ## Concept Map:
