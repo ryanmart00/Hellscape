@@ -24,6 +24,10 @@ On Windows:
 - after moving into the Hellscape folder run ```mkdir bin && cd bin```
 - To compile the code: ```cmake -G "Unix Makefiles" .. -DCMAKE_SYSTEM_NAME=Windows && make```
 
+Installation Notes
+- This project depends on linked github repos, be sure to clone like `git clone --recurse-submodules ...`
+- Rough set of dependencies: OpenGL, Cpp compiler (g++, clang), glfw (glfw is also linked repo, so you may not need to install this seperately)
+
 
 ## Concept Map:
 <a id="raw-url" href="https://miro.com/app/board/o9J_knGxncc=/"> Miro</a>
