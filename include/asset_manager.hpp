@@ -96,6 +96,7 @@ namespace InputManager
     {
     public:
         virtual void mouseCallback(GLFWwindow*, double, double) = 0;
+        virtual void mouseButtonCallback(GLFWwindow*, int, int, int) = 0;
         virtual void pollInput(GLFWwindow*, float) = 0;
     };
 
@@ -107,6 +108,14 @@ namespace InputManager
         if(objects_[currentIndex])
         {
             objects_[currentIndex]->mouseCallback(window, X, Y);
+        }
+    }
+
+    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+    {
+        if(objects_[currentIndex])
+        {
+            objects_[currentIndex]->mouseButtonCallback(window, button, action, mods);
         }
     }
 

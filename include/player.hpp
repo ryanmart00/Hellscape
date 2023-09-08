@@ -38,8 +38,9 @@ public:
 
     virtual void hardInit(Dynamics*);
     virtual void mouseCallback(GLFWwindow*, double xpos, double ypos);
+    virtual void mouseButtonCallback(GLFWwindow*, int button, int action, int mods);
     virtual void pollInput(GLFWwindow*, float dt);
-
+    virtual int getPoints();
 
 protected:
     virtual void update(Dynamics*, float);
@@ -50,6 +51,8 @@ private:
     double lastX;
     double lastY;
     bool grounded = false;
+    int points = 0; // temporary concept to debug shooting
+    void incrementPoints();
 };
 
 #endif
