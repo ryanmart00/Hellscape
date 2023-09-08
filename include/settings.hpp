@@ -10,6 +10,7 @@ public:
     ~Settings() = default;
 
     virtual void mouseCallback(GLFWwindow*, double xpos, double ypos);
+    virtual void mouseButtonCallback(GLFWwindow*, int, int, int);
     virtual void pollInput(GLFWwindow*, float dt);
 };
 
