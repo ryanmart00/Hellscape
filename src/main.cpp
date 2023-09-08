@@ -216,6 +216,9 @@ void renderText(FT_Face& face, Shader& shader, const char* text, float x, float 
 
 }
 
+/*
+// commented out when pushing to main until it is properly debugged
+// horrible practice, apologies =P 
 GLuint chairVAO = 0;
 GLuint chairVBO = 0;
 std::vector<glm::vec3> generateCrosshair(glm::vec3 cameraPos)
@@ -275,6 +278,7 @@ void renderCrosshair(Shader& shader, glm::vec3 cameraPos)
     glBindVertexArray(0);
     glActiveTexture(0);
 }
+*/
 
 int main()
 {
