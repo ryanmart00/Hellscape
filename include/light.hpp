@@ -35,7 +35,7 @@ protected:
 class DirectionalLight : public BaseLight
 {
 public:
-    DirectionalLight(glm::vec3 direction, glm::vec3 (*getCenter)(void), glm::vec3 ambient, 
+    DirectionalLight(glm::vec3 direction,glm::vec3 ambient, 
             glm::vec3 diffuse, glm::vec3 specular);
     /**
      *  Assigns this light to shader.
@@ -46,14 +46,14 @@ public:
      *      - diffuse
      *      - specular
      */
-    void updateShader(Shader& shader, unsigned int num);
+    void updateShader(Shader* shader, unsigned int num, glm::vec3 center);
 
     virtual void renderShadows(std::vector<BaseObject*> renderables);
 
 
+
 protected:
     glm::vec3 direction_;
-    glm::vec3 (*getCenter_)(void);
 
 };
 
@@ -76,7 +76,7 @@ public:
      *      - linear
      *      - quadratic
      */
-    void updateShader(Shader& shader, unsigned int num, unsigned int numDirLights);
+    void updateShader(Shader* shader, unsigned int num, unsigned int numDirLights);
 
     virtual void renderShadows(std::vector<BaseObject*> renderables);
 

@@ -1,7 +1,7 @@
 #include "game_object.hpp"
 #include <iostream>
 
-BaseObject::BaseObject(BaseObject* parent, AssetManager* manager) 
+BaseObject::BaseObject(BaseObject* parent, AssetManager& manager) 
     : parent_{parent}, children_{}, manager_{manager}
 {
     if(parent_)
@@ -22,7 +22,7 @@ BaseObject::~BaseObject()
     }
 }
 
-void BaseObject::Draw(Shader& shader, int numShadowMaps)
+void BaseObject::Draw(Shader* shader, int numShadowMaps)
 {
     draw(shader, numShadowMaps);
     for(auto i = children_.begin(); i != children_.end(); ++i)
@@ -54,7 +54,7 @@ void BaseObject::addChild(BaseObject* child)
     children_.push_back(child);
 }
 
-StaticObject::StaticObject(BaseObject* parent, AssetManager* manager, 
+StaticObject::StaticObject(BaseObject* parent, AssetManager& manager, 
     std::string modelPath, std::string shapePath, btTransform transform) 
     : BaseObject{parent, manager}, model_{nullptr}, rigidBody_{nullptr}, 
     motion_{new btDefaultMotionState{transform}}, modelPath_{modelPath},shapePath_{shapePath},
@@ -64,7 +64,7 @@ StaticObject::StaticObject(BaseObject* parent, AssetManager* manager,
 
 StaticObject::~StaticObject()
 {
-    manager_->unload(modelPath_);
+    manager_.unload(modelPath_);
     if(rigidBody_)
     {
         delete rigidBody_;
@@ -91,9 +91,9 @@ StaticObject::~StaticObject()
     }
 }
 
-void StaticObject::draw(Shader& shader, int numShadowMaps)
+void StaticObject::draw(Shader* shader, int numShadowMaps)
 {
-    shader.setMat4("model", convertWorldTransform());
+    shader->setMat4("model", convertWorldTransform());
     model_->Draw(shader, numShadowMaps);
 } 
 
@@ -108,15 +108,16 @@ void StaticObject::getWorldTransform(btTransform& trans)
 
 void StaticObject::softInit()
 {
-    manager_->load(modelPath_); 
-    manager_->load(shapePath_); 
+    manager_.load(modelPath_); 
+    manager_.load(shapePath_); 
 }
 
 void StaticObject::hardInit(Dynamics* world)
 {
-    model_ = manager_->get(modelPath_);
+    this->BaseObject::hardInit(world);
+    model_ = manager_.get(modelPath_);
 
-    Model* shapeModel = manager_->get(shapePath_);
+    Model* shapeModel = manager_.get(shapePath_);
     shape_ = new btCompoundShape{};
     btTransform trans;
     trans.setIdentity();
@@ -142,15 +143,16 @@ void StaticObject::hardInit(Dynamics* world)
 
     world->addRigidBody(rigidBody_);
     //TODO: Can I unload the shape here?
+    //manager_.unload(shapePath_);
 }
 
 void StaticObject::softDestruct(Dynamics* world)
 {
+    this->BaseObject::softDestruct(world);
     world->removeRigidBody(rigidBody_);
-    manager_->unload(shapePath_);
 }
 
-DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager, 
+DynamicObject::DynamicObject(BaseObject* parent, AssetManager& manager, 
     btCollisionShape* shape, float mass, std::string modelPath, 
     btTransform transform) 
     : BaseObject{parent, manager}, model_{nullptr}, rigidBody_{nullptr},
@@ -161,7 +163,7 @@ DynamicObject::DynamicObject(BaseObject* parent, AssetManager* manager,
 
 DynamicObject::~DynamicObject()
 {
-    manager_->unload(modelPath_);
+    manager_.unload(modelPath_);
     if(rigidBody_)
     {
         delete rigidBody_;
@@ -172,9 +174,9 @@ DynamicObject::~DynamicObject()
     }
 }
 
-void DynamicObject::draw(Shader& shader, int numShadowMaps)
+void DynamicObject::draw(Shader* shader, int numShadowMaps)
 {
-    shader.setMat4("model", convertWorldTransform());
+    shader->setMat4("model", convertWorldTransform());
     model_->Draw(shader, numShadowMaps);
 } 
 
@@ -189,12 +191,13 @@ void DynamicObject::getWorldTransform(btTransform& trans)
 
 void DynamicObject::softInit()
 {
-    manager_->load(modelPath_); 
+    manager_.load(modelPath_); 
 }
 
 void DynamicObject::hardInit(Dynamics* world)
 {
-    model_ = manager_->get(modelPath_);
+    this->BaseObject::hardInit(world);
+    model_ = manager_.get(modelPath_);
     
     btVector3 inertia{0,0,0};
     shape_->calculateLocalInertia(mass_, inertia);
@@ -206,6 +209,7 @@ void DynamicObject::hardInit(Dynamics* world)
 
 void DynamicObject::softDestruct(Dynamics* world)
 {
+    this->BaseObject::softDestruct(world);
     world->removeRigidBody(rigidBody_);
 }
 

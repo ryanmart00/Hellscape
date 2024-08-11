@@ -64,7 +64,7 @@ void Mesh::setupMesh()
 
 
 
-void Mesh::Draw(Shader& shader, int numShadowMaps)
+void Mesh::Draw(Shader* shader, int numShadowMaps)
 {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
@@ -86,19 +86,19 @@ void Mesh::Draw(Shader& shader, int numShadowMaps)
             number = std::to_string(specularNr);
             specularNr++;
         }
-        shader.setInt(("material." + name + number).c_str(), i + numShadowMaps);
+        shader->setInt(("material." + name + number).c_str(), i + numShadowMaps);
         glBindTexture(GL_TEXTURE_2D, textures_[i]->id);
     }
-    shader.setFloat("material.shininess", shininess_);
-    shader.setVec3("material.diffuse", diffuse_);
-    shader.setVec3("material.specular", specular_);
+    shader->setFloat("material.shininess", shininess_);
+    shader->setVec3("material.diffuse", diffuse_);
+    shader->setVec3("material.specular", specular_);
     
     glActiveTexture(GL_TEXTURE0);
 
     // set bone offsets
     for(int i = 0; i < bones_.size(); i++)
     {
-        shader.setMat4("bones[" + std::to_string(i) + "]", bones_[i].offset);
+        shader->setMat4("bones[" + std::to_string(i) + "]", bones_[i].offset);
     }
 
     // draw mesh

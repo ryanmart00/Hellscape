@@ -76,7 +76,7 @@ public:
      *
      * uniform Material material;
      */
-    void Draw(Shader& shader, int numShadowMaps);
+    void Draw(Shader* shader, int numShadowMaps);
 
     friend std::ostream& operator<<(std::ostream& os, const Mesh& m);
 

@@ -6,6 +6,7 @@
 #include <string>
 #include "constants.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
+#include "inputs.hpp"
 
 static glm::vec3 quatForward(glm::quat q) 
 {
@@ -23,13 +24,13 @@ static glm::vec3 quatUp(glm::quat q)
 }
 
 
-class Player : public DynamicObject, public Input
+class Player : public DynamicObject 
 {
 public:
 
     Player() = delete;
     Player(const Player&) = delete;
-    Player(AssetManager*, btTransform, glm::vec3, glm::vec3, GameState&); 
+    Player(AssetManager&, btTransform, glm::vec3, glm::vec3, GameState&); 
     virtual ~Player();
 
     const glm::mat4 getCameraView();
@@ -37,20 +38,14 @@ public:
     const glm::vec3 getCameraPos();
 
     virtual void hardInit(Dynamics*);
-    virtual void mouseCallback(GLFWwindow*, double xpos, double ypos);
-    virtual void mouseButtonCallback(GLFWwindow*, int button, int action, int mods);
-    virtual void pollInput(GLFWwindow*, float dt);
     virtual int getPoints();
 
+    glm::quat cam_;
+    bool grounded = false;
 protected:
     virtual void update(Dynamics*, float);
 
 private:
-    glm::quat cam_;
-    bool firstMouse = true;
-    double lastX;
-    double lastY;
-    bool grounded = false;
     int points = 0; // temporary concept to debug shooting
     void incrementPoints();
 };

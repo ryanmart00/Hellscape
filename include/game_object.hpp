@@ -52,14 +52,14 @@ class BaseObject
 public:
     BaseObject() = delete;
     /** Constructs a BaseObject with parent and collision Object*/
-    BaseObject(BaseObject*, AssetManager*); 
+    BaseObject(BaseObject*, AssetManager&); 
 
     virtual ~BaseObject();
 
     /** Draws the object according to mat4 view and projection and 
      * after draws all children
      */
-    void Draw(Shader& shader, int numShadowMaps);
+    void Draw(Shader* shader, int numShadowMaps);
 
     /** Updates this Object with respect to the delta time and 
      *  after updates all children
@@ -74,19 +74,20 @@ public:
 
     /** Ensures that the initialization process is complete 
      * also adds this object to the dynamics world if necessary) */
-    virtual void hardInit(Dynamics*) {};
+    virtual void hardInit(Dynamics*) {initialized = true;};
 
-    virtual void softDestruct(Dynamics*) {};
+    virtual void softDestruct(Dynamics*) {initialized = false;};
 
     void addChild(BaseObject*);
 protected:
-    virtual void draw(Shader& shader, int numShadowMaps) = 0;
+    virtual void draw(Shader* shader, int numShadowMaps) = 0;
     virtual void update(Dynamics*, float) = 0;
     glm::mat4 convertWorldTransform();
 
     BaseObject* parent_;
     std::vector<BaseObject*> children_;
-    AssetManager* manager_;
+    AssetManager& manager_;
+    bool initialized = false;
     
 };
 
@@ -95,7 +96,7 @@ class StaticObject : public BaseObject
 public:
     StaticObject() = delete;
     StaticObject(const StaticObject&) = delete;
-    StaticObject(BaseObject*, AssetManager*, std::string, std::string, btTransform); 
+    StaticObject(BaseObject*, AssetManager&, std::string, std::string, btTransform); 
     virtual ~StaticObject();
 
     
@@ -108,7 +109,7 @@ public:
 
     Model* model_;
 protected:
-    virtual void draw(Shader& shader, int numShadowMaps);
+    virtual void draw(Shader* shader, int numShadowMaps);
     virtual void update(Dynamics*, float);
 
     btRigidBody* rigidBody_;
@@ -127,7 +128,7 @@ class DynamicObject : public BaseObject
 public:
     DynamicObject() = delete;
     DynamicObject(const DynamicObject&) = delete;
-    DynamicObject(BaseObject*, AssetManager*, btCollisionShape*, float, std::string, 
+    DynamicObject(BaseObject*, AssetManager&, btCollisionShape*, float, std::string, 
         btTransform); 
     virtual ~DynamicObject();
 
@@ -139,12 +140,12 @@ public:
 
     virtual void softDestruct(Dynamics*); 
 
+    btRigidBody* rigidBody_;
 protected:
-    virtual void draw(Shader& shader, int numShadowMaps);
+    virtual void draw(Shader* shader, int numShadowMaps);
     virtual void update(Dynamics*, float);
 
     Model* model_;
-    btRigidBody* rigidBody_;
     float mass_;
     btMotionState* motion_;
     std::string modelPath_;

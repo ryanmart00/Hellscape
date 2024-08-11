@@ -1,14 +1,4 @@
 #include "light.hpp"
-#include "constants.hpp"
-#include "glm/ext/matrix_float4x4.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/ext/quaternion_common.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/integer.hpp"
-#include "shader.hpp"
-#include <string>
-#include <vector>
-
 
 BaseLight::BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, 
         const char* vs, const char* fs, const char* gs) 
@@ -16,11 +6,11 @@ BaseLight::BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
 {
 }
 
-DirectionalLight::DirectionalLight(glm::vec3 direction, glm::vec3 (*getCenter)(void), glm::vec3 ambient, glm::vec3 diffuse,
+DirectionalLight::DirectionalLight(glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse,
     glm::vec3 specular)
     : BaseLight{ambient, diffuse, specular, 
         "assets/gl/dirshadow.vs", "assets/gl/dirshadow.fs", nullptr}, 
-    direction_{direction}, getCenter_{getCenter}
+    direction_{direction}
 {
     glGenFramebuffers(1, &depthMapFBO_);
 
@@ -48,25 +38,30 @@ DirectionalLight::DirectionalLight(glm::vec3 direction, glm::vec3 (*getCenter)(v
     shadowShader_.setMat4("projection", projection_);
 }
 
-void DirectionalLight::updateShader(Shader& shader, unsigned int num)
+void DirectionalLight::updateShader(Shader* shader, unsigned int num, glm::vec3 center)
 {
-    shader.use();
+    shader->use();
     std::string name = "directionalLights[";
     name += std::to_string(num);
     name += "].";
-    shader.setVec3(name + "direction", direction_);
-    shader.setVec3(name + "ambient", ambient_);
-    shader.setVec3(name + "diffuse", diffuse_);
-    shader.setVec3(name + "specular", specular_);
+    shader->setVec3(name + "direction", direction_);
+    shader->setVec3(name + "ambient", ambient_);
+    shader->setVec3(name + "diffuse", diffuse_);
+    shader->setVec3(name + "specular", specular_);
 
-    shader.setMat4("dirLightView[" + std::to_string(num) + "]", glm::translate(
+    shader->setMat4("dirLightView[" + std::to_string(num) + "]", glm::translate(
                 glm::mat4_cast(glm::conjugate(glm::quatLookAt(direction_, UP))),
-                -getCenter_()+DIR_LIGHT_BACKWARD_OFFSET*direction_));
-    shader.setMat4("dirLightProj[" + std::to_string(num) + "]", projection_);
+                -center+DIR_LIGHT_BACKWARD_OFFSET*direction_));
+    shader->setMat4("dirLightProj[" + std::to_string(num) + "]", projection_);
 
-    shader.setInt(name + "shadow", num);
+    shader->setInt(name + "shadow", num);
     glActiveTexture(GL_TEXTURE0 + num);
     glBindTexture(GL_TEXTURE_2D, depthMap_);
+    shadowShader_.use();
+    shadowShader_.setMat4("view", glm::translate(
+                glm::mat4_cast(glm::conjugate(glm::quatLookAt(direction_, UP))),
+                -center+DIR_LIGHT_BACKWARD_OFFSET*direction_));
+    shadowShader_.setMat4("projection", projection_);
 
 }
 
@@ -74,10 +69,6 @@ void DirectionalLight::renderShadows(std::vector<BaseObject*> renderables)
 {
     shadowShader_.use();
 
-    shadowShader_.setMat4("view", glm::translate(
-                glm::mat4_cast(glm::conjugate(glm::quatLookAt(direction_, UP))),
-                -getCenter_()+DIR_LIGHT_BACKWARD_OFFSET*direction_));
-    shadowShader_.setMat4("projection", projection_);
     glViewport(0,0,DIR_SHADOW_WIDTH, DIR_SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO_);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -86,7 +77,7 @@ void DirectionalLight::renderShadows(std::vector<BaseObject*> renderables)
     // render all objects
     for(auto i = renderables.begin(); i != renderables.end(); i++)
     {
-        (*i)->Draw(shadowShader_, 0);
+        (*i)->Draw(&shadowShader_, 0);
     }
     glCullFace(GL_BACK);
 
@@ -129,21 +120,21 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse,
 
 }
 
-void PointLight::updateShader(Shader& shader, unsigned int num, unsigned int dirLights)
+void PointLight::updateShader(Shader* shader, unsigned int num, unsigned int dirLights)
 {
-    shader.use();
+    shader->use();
     std::string name = "pointLights[";
     name += std::to_string(num);
     name += "].";
-    shader.setVec3(name + "position", position_);
-    shader.setVec3(name + "ambient", ambient_);
-    shader.setVec3(name + "diffuse", diffuse_);
-    shader.setVec3(name + "specular", specular_);
-    shader.setFloat(name + "constant", constFalloff_);
-    shader.setFloat(name + "linear", linearFalloff_);
-    shader.setFloat(name + "quadratic", quadFalloff_);
+    shader->setVec3(name + "position", position_);
+    shader->setVec3(name + "ambient", ambient_);
+    shader->setVec3(name + "diffuse", diffuse_);
+    shader->setVec3(name + "specular", specular_);
+    shader->setFloat(name + "constant", constFalloff_);
+    shader->setFloat(name + "linear", linearFalloff_);
+    shader->setFloat(name + "quadratic", quadFalloff_);
 
-    shader.setInt(name + "shadow", num + dirLights);
+    shader->setInt(name + "shadow", num + dirLights);
     glActiveTexture(GL_TEXTURE0 + num + dirLights);
     glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap_);
 }
@@ -184,7 +175,7 @@ void PointLight::renderShadows(std::vector<BaseObject*> renderables)
     // render all objects
     for(auto i = renderables.begin(); i != renderables.end(); i++)
     {
-        (*i)->Draw(shadowShader_, 0);
+        (*i)->Draw(&shadowShader_, 0);
     }
     //glCullFace(GL_BACK);
 
