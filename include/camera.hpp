@@ -1,8 +1,7 @@
 #ifndef CAMERA_HPP_INCLUDED
 #define CAMERA_HPP_INCLUDED
 
-#include "glm/glm.hpp"
-#include "glm/ext/matrix_transform.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/quaternion.hpp"
 
 class Camera

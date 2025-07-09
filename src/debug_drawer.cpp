@@ -1,5 +1,6 @@
 #include "debug_drawer.hpp"
-
+#include <glad/gl.h>
+#include <iostream>
 DebugDrawer::DebugDrawer()
     : m{0}, shader{0,0,"assets/gl/debug.vs","assets/gl/debug.fs"}
 {

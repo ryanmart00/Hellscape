@@ -69,12 +69,18 @@ link_directories(${BULLET_LINK})
 #include glfw
 #---------------------------------
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Do not build GLFW example programs")
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "Do not build GLFW tests")
+set(GLFW_BUILD_TESTS ON CACHE BOOL "Do not build GLFW tests")
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "Do not build GLFW Docs")
 set(GLFW_INSTALL OFF CACHE BOOL "Do not install GLFW")
 add_subdirectory(libs/glfw)
 include_directories(libs/glfw/include)
+include_directories(libs/glfw/deps)
 link_directories(${PROJECT_BINARY_DIR}/libs/glfw/src)
+
+set(GLAD_GL "libs/glfw/deps/glad/gl.h"
+            "libs/glfw/deps/glad_gl.c")
+set(GLAD_VULKAN "libs/glfw/deps/glad/vulkan.h"
+                "libs/glfw/deps/glad_vulkan.c")
 
 
 #include freetype
@@ -84,11 +90,13 @@ include_directories(libs/freetype/include)
 link_directories(${PROJECT_BINARY_DIR}/libs/freetype/builds)
 
 #set SOURCES to all files in src ending in .cpp
-file(GLOB SOURCES "src/*.c*")
-
+file(GLOB SOURCES "src/*.cpp")
 
 # add the executable
-add_executable(Hellscape ${SOURCES})
+add_executable(Hellscape ${SOURCES} ${GLAD_GL} )
+#add_executable(Hellscape "src/main.cpp" "src/shader.cpp" ${GLAD_GL} )
+
+
 
 option(DEBUG "Will print Debug information to std out" OFF)
 if(${DEBUG})

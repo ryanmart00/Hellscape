@@ -1,27 +1,99 @@
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/ext/scalar_constants.hpp"
-#include "glm/geometric.hpp"
-#include "mesh.hpp"
+#include <glad/gl.h>
+#ifndef GLFW_GUARD
+#define GLFW_GUARD
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#endif
+
+
+
+#include <cstdlib>
+#include <iostream>
+
+#include "asset_manager.hpp"
+#include "gameplay.hpp"
+
 #include <iostream>
 #include <tgmath.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "model.hpp"
 #include <math.h>
 
 #include "constants.hpp"
 #include "inputs.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "gameplay.hpp"
 #include "text.hpp"
 
+static void error_callback(int error, const char* description)
+{
+    std::cout << description << std::endl;
+}
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 
+
+//Initializes the GLFW Window and starts up GLAD
+static GLFWwindow* initWindow()
+{
+    glfwSetErrorCallback(error_callback);
+	if(!glfwInit())
+    {
+        std::cerr << "GLFW init failed" << std::endl;
+        std::exit(1);
+    }
+    std::cout << "GLFW init succeeded" << std::endl;
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
+
+
+	//Initialization of Window
+	//------------------------
+	#ifdef DEBUG
+        std::cout << "Initializing Window..." << std::endl;
+    #endif
+	GLFWwindow* window = glfwCreateWindow(800, 800, "Hellscape", NULL, NULL);
+	if (window == NULL)
+	{
+        std::cerr << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+        std::exit(1);
+	}
+	glfwMakeContextCurrent(window);
+
+	if (!gladLoadGL(glfwGetProcAddress))
+	{
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+		std::exit(1);
+	}   
+
+
+	#ifdef DEBUG 
+	int numAttr;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
+        std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
+    #endif
+    return window;
+}
+
+
+/*
+int main()
+{
+    GLFWwindow* window = initWindow();
+    while(!glfwWindowShouldClose(window))
+	{
+		//Handle events
+		glfwSwapBuffers(window);
+		glfwPollEvents();    
+	}
+	
+
+}
+*/
 
 Settings* settings;
 
@@ -31,6 +103,11 @@ Gameplay* gameplay;
 
 GameState state;
 Input* input_handlers[NUM_STATES];    
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    input_handlers[state]->framebuffer_size_callback(window,width,height);
+}
 
 void mouseCallback(GLFWwindow* window, double X, double Y)
 {
@@ -47,14 +124,14 @@ void pollInput(GLFWwindow* window, float dt)
     input_handlers[state]->pollInput(window,dt);
 }
 
-void characterCallback(GLFWwindow* window, int point)
+void characterCallback(GLFWwindow* window, unsigned int point)
 {
     input_handlers[state]->characterCallback(window,point);
 }
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
-void renderQuad()
+static void renderQuad()
 {
     if (quadVAO == 0)
     {
@@ -81,50 +158,6 @@ void renderQuad()
     glBindVertexArray(0);
 }
 
-/**
- * Initializes the GLFW Window and starts up GLAD
- */
-GLFWwindow* initWindow()
-{
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
-
-
-	//Initialization of Window
-	//------------------------
-	#ifdef DEBUG
-        std::cout << "Initializing Window..." << std::endl;
-    #endif
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hellscape", NULL, NULL);
-	if (window == NULL)
-	{
-        std::cerr << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-        std::exit(1);
-	}
-	glfwMakeContextCurrent(window);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-        std::cerr << "Failed to initialize GLAD" << std::endl;
-		std::exit(1);
-	}   
-
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
-
-
-
-	#ifdef DEBUG 
-	int numAttr;
-	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numAttr);
-        std::cout << "Max Vertex Attributes supported: " << numAttr << std::endl;
-    #endif
-    return window;
-}
 
 /*
 // commented out when pushing to main until it is properly debugged
@@ -199,7 +232,6 @@ int main()
     //GLFW    
     GLFWwindow* window = initWindow();
     
-
     // Settings input manager
     {
         settings = new Settings(state, input_handlers);
@@ -214,14 +246,15 @@ int main()
 
     // Gameplay input manager
     {
-        gameplay = new Gameplay(state, input_handlers, manager);
+        gameplay = new Gameplay(state, input_handlers, manager,800,800);
         input_handlers[GameState::PLAYING] = gameplay;
         gameplay->softInit();
     }
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouseCallback);
-    glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCharCallback(window, characterCallback);
+    glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
 
@@ -278,9 +311,3 @@ std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
     os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
     return os;
 } 
-
-void framebuffer_size_callback(GLFWwindow*, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-

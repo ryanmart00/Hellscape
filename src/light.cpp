@@ -1,5 +1,11 @@
 #include "light.hpp"
 
+#include <glad/gl.h>
+#include "constants.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/gtc/quaternion.hpp"
+
+
 BaseLight::BaseLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, 
         const char* vs, const char* fs, const char* gs) 
     : shadowShader_{0,0,vs, fs, gs}, ambient_{ambient}, diffuse_{diffuse}, specular_{specular}
@@ -49,7 +55,8 @@ void DirectionalLight::updateShader(Shader* shader, unsigned int num, glm::vec3 
     shader->setVec3(name + "diffuse", diffuse_);
     shader->setVec3(name + "specular", specular_);
 
-    shader->setMat4("dirLightView[" + std::to_string(num) + "]", glm::translate(
+    shader->setMat4("dirLightView[" + std::to_string(num) + "]", 
+            glm::translate(
                 glm::mat4_cast(glm::conjugate(glm::quatLookAt(direction_, UP))),
                 -center+DIR_LIGHT_BACKWARD_OFFSET*direction_));
     shader->setMat4("dirLightProj[" + std::to_string(num) + "]", projection_);

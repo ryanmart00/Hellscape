@@ -3,10 +3,10 @@
 #include "btVector3.h"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/fwd.hpp"
-#include "glm/glm.hpp"
+#include "glm/matrix.hpp"
 #include <string>
 #include <iostream>
-#include "assimp/types.h"
+#include "assimp/matrix4x4.h"
 
 //*** conversions ***
 static glm::vec3 convert(btVector3& vec)
@@ -44,8 +44,8 @@ const glm::vec3 UP{0.0f, 1.0f, 0.0f};
 const glm::vec3 RIGHT{1.0f, 0.0f, 0.0f};
 const glm::vec3 FORWARD = glm::cross(UP,RIGHT);
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+static unsigned int SCR_WIDTH = 800;
+static unsigned int SCR_HEIGHT = 600;
 
 
 const std::string PLAYER_MODEL_PATH = "assets/Models/Player/player.obj";

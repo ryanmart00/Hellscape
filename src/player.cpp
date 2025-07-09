@@ -1,4 +1,7 @@
 #include "player.hpp"
+#include "constants.hpp"
+#include "glm/ext/quaternion_float.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 Player::Player(AssetManager& manager, btTransform transform, 
     glm::vec3 camDirection, glm::vec3 camUp, GameState& state)
@@ -60,7 +63,7 @@ void Player::update(Dynamics* world, float)
 
     // Theoretically this will give us the first non-player hitbox
     ObjectRayCallback callback{rigidBody_};
-    callback.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+    //callback.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
     world->world_->rayTest(from, to, callback);
     if(callback.hasHit())
     {

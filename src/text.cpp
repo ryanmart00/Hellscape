@@ -1,4 +1,5 @@
 #include "text.hpp"
+#include <glad/gl.h>
 #include <iostream>
 
 Text::Text(const char* vertexPath, const char* fragmentPath)

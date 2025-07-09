@@ -17,8 +17,8 @@ public:
 private:
     FT_Library ft;
     FT_Face face;
-    GLuint tex;
-    GLuint textVAO = 0;
-    GLuint textVBO = 0;
+    uint tex;
+    uint textVAO = 0;
+    uint textVBO = 0;
 };
 #endif

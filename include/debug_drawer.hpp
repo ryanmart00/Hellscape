@@ -2,15 +2,14 @@
 #define DEBUG_DRAWER_HPP
 
 #include <btBulletDynamicsCommon.h>
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include<vector>
+#include <vector>
 #include "shader.hpp"
 
 class DebugDrawer : public btIDebugDraw {
 public:
-    GLuint VBO, VAO;
+    uint VBO, VAO;
     DebugDrawer();
 
 	void SetMatrices(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
@@ -26,7 +25,7 @@ public:
     void drawLinesWorld();
 	int m;
     Shader shader;
-    std::vector<GLfloat> points_;
+    std::vector<float> points_;
     int numPoints_;
 };
 #endif

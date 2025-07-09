@@ -1,5 +1,5 @@
 #include "game_object.hpp"
-#include <iostream>
+#include "glm/gtc/type_ptr.hpp"
 
 BaseObject::BaseObject(BaseObject* parent, AssetManager& manager) 
     : parent_{parent}, children_{}, manager_{manager}

@@ -1,13 +1,8 @@
 #ifndef SHADER_HPP_INCLUDED
 #define SHADER_HPP_INCLUDED
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
-
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 
 void replaceAll(std::string& data, std::string search, std::string replace);
 
@@ -92,7 +87,7 @@ public:
      */
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
 private:
-    void checkCompileErrors(const char* name, GLuint shader, std::string type);
+    void checkCompileErrors(const char* name, uint shader, std::string type);
 
 };
 #endif

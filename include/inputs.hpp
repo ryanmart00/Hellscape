@@ -1,13 +1,14 @@
 #ifndef INPUTS_HPP
 #define INPUTS_HPP
 
-#include "text.hpp"
+#ifndef GLFW_GUARD
+#define GLFW_GUARD
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#endif
+
+#include "text.hpp"
 #include <string>
-#include <iostream>
-#include <unicode/unistr.h>
-#include "GLFW/glfw3.h"
-#include "constants.hpp"
 
     /** InputManager Details
      *  Add to this namespace for each input object, 
@@ -43,6 +44,7 @@ public:
     virtual void mouseCallback(GLFWwindow*, double, double) = 0;
     virtual void mouseButtonCallback(GLFWwindow*, int, int, int) = 0;
     virtual void pollInput(GLFWwindow*, float) = 0;
+    virtual void framebuffer_size_callback(GLFWwindow*, int, int) = 0;
     virtual void characterCallback(GLFWwindow*, unsigned int) = 0;
     virtual void update(float dt) = 0;
     void contextSwitch(GameState to)
@@ -66,6 +68,7 @@ public:
     virtual void mouseButtonCallback(GLFWwindow*, int, int, int);
     virtual void pollInput(GLFWwindow*, float); 
     virtual void characterCallback(GLFWwindow*, unsigned int); 
+    virtual void framebuffer_size_callback(GLFWwindow*, int, int);
     virtual void hardInit();
     virtual void stop();
     virtual void update(float dt);
@@ -82,12 +85,14 @@ public:
     virtual void mouseButtonCallback(GLFWwindow*, int, int, int);
     virtual void pollInput(GLFWwindow*, float);
     virtual void characterCallback(GLFWwindow*, unsigned int);
+    virtual void framebuffer_size_callback(GLFWwindow*, int, int);
     virtual void hardInit();
     virtual void stop();
     virtual void update(float dt);
 
     std::string ip;
 };
+
 
 
 #endif

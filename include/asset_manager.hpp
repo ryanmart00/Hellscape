@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <string>
 #include <future>
-#include <glad/glad.h>
 
 class AssetManager
 {

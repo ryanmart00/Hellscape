@@ -1,5 +1,8 @@
 #include "mesh.hpp"
 
+#include "glad/gl.h"
+#include <iostream>
+
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
     std::vector<Texture*> textures, std::vector<Bone> bones, glm::vec3 diffuse, glm::vec3 specular, float shininess)
     : vertices_{vertices}, indices_{indices}, textures_{textures}, bones_{bones}, diffuse_{diffuse},

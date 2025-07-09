@@ -4,8 +4,11 @@
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include <vector>
-#include "debug_drawer.hpp"
 #include <glm/glm.hpp>
+
+#ifdef DEBUG
+#include "debug_drawer.hpp"
+#endif
 
 /**
  * A class that keeps track of all bodies added to the dynamics world (Bullet).

@@ -1,7 +1,12 @@
 #include "gameplay.hpp"
 
-Gameplay::Gameplay(GameState& state, Input** inputs, AssetManager& man)
-    : Input{state, inputs}, manager_{man} 
+#include "constants.hpp"
+#include "glm/ext/quaternion_trigonometric.hpp"
+#include "glad/gl.h"
+#include "glm/gtc/quaternion.hpp"
+
+Gameplay::Gameplay(GameState& state, Input** inputs, AssetManager& man, int width, int height)
+    : Input{state, inputs}, manager_{man}, srcwidth{width}, srcheight{height}
 {
     //Initialize Bullet
     //-----------------
@@ -106,7 +111,7 @@ Gameplay::Gameplay(GameState& state, Input** inputs, AssetManager& man)
 
     //projection: generates frustum	
     projection = glm::perspective(glm::radians(45.0f), 
-        ((float)SCR_WIDTH)/((float)SCR_HEIGHT), 0.1f, 1000.0f); 
+        ((float)srcwidth)/((float)srcheight), 0.1f, 1000.0f); 
 }
 
 
@@ -149,6 +154,13 @@ Gameplay::~Gameplay()
     #endif
 
 
+}
+
+void Gameplay::framebuffer_size_callback(GLFWwindow*, int width, int height)
+{
+    srcwidth= width;
+    srcheight = height;
+    glViewport(0, 0, width, height);
 }
 
 void Gameplay::mouseCallback(GLFWwindow*, double xpos, double ypos)
@@ -280,7 +292,7 @@ void Gameplay::update(float dt)
 {
     Model& cube = *manager_.get("assets/Models/cube/cube.obj");
     StaticObject* boneTest = (StaticObject*)objects[bone];
-    boneTest->model_->meshes_[0].bones_[0].offset *= glm::mat4(glm::angleAxis(dt, UP));
+    boneTest->model_->meshes_[0].bones_[0].offset *= glm::mat4_cast(glm::angleAxis(dt, UP));
     boneTest->model_->meshes_[0].bones_[1].offset *= glm::mat4(glm::angleAxis(2*dt, FORWARD));
 
     // bullet physics
@@ -309,7 +321,7 @@ void Gameplay::update(float dt)
 
     //Reset Viewport Size and clear again
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glViewport(0,0, SCR_WIDTH, SCR_HEIGHT);
+    glViewport(0,0, srcwidth, srcheight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //Draw
@@ -354,8 +366,8 @@ void Gameplay::update(float dt)
     //Show FPS
     text_->use();
     text_->setVec4("color", glm::vec4{1,1,1,.5f});
-    float sx = 2.0 / SCR_WIDTH;
-    float sy = 2.0 / SCR_HEIGHT;
+    float sx = 2.0 / srcwidth;
+    float sy = 2.0 / srcheight;
 
     text_->renderText((std::string("FPS: ")
                 + std::to_string((int)(1/dt))).c_str(),

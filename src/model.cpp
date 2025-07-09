@@ -1,6 +1,12 @@
 #include "model.hpp"
-#include <stb_image.h>
 
+#ifndef STB_INCLUDE_GUARD
+#define STB_INCLUDE_GUARD
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#endif
+#include "constants.hpp"
+#include "glad/gl.h"
 
 
 Model::Model(std::string path)

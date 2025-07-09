@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "shader.hpp"
-#include "constants.hpp"
 #include "game_object.hpp"
+
 class BaseLight
 {
 public:

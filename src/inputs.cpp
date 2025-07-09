@@ -1,5 +1,9 @@
 #include "inputs.hpp"
 
+#include <glad/gl.h>
+#include <unicode/unistr.h>
+#include <iostream>
+#include "constants.hpp"
 
 Settings::Settings(GameState& state, Input** inputs)
     : Input{state, inputs}
@@ -30,6 +34,11 @@ void Settings::characterCallback(GLFWwindow*, unsigned int point)
 void Settings::hardInit()
 {   
 }   
+
+void Settings::framebuffer_size_callback(GLFWwindow*, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
 
 void Settings::stop()
 {
@@ -76,7 +85,10 @@ void Matchmaking::pollInput(GLFWwindow* window, float dt)
         ip = "";
 	}
 }
-
+void Matchmaking::framebuffer_size_callback(GLFWwindow*, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
 void Matchmaking::characterCallback(GLFWwindow*, unsigned int point)
 {
     /*
@@ -99,4 +111,5 @@ void Matchmaking::stop()
 void Matchmaking::update(float)
 {
 }
+
 

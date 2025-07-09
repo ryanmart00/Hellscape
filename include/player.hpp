@@ -2,11 +2,10 @@
 #define PLAYER_HPP_INCLUDED
 
 #include "game_object.hpp"
-#include "camera.hpp"
-#include <string>
-#include "constants.hpp"
-#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 #include "inputs.hpp"
+#include <btBulletCollisionCommon.h>
+#include <btBulletDynamicsCommon.h>
+#include "glm/ext/quaternion_float.hpp"
 
 static glm::vec3 quatForward(glm::quat q) 
 {

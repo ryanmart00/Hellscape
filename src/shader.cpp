@@ -1,6 +1,11 @@
 #include "shader.hpp"
+
+#include <glad/gl.h>
 #include "constants.hpp"
-#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
 
 void replaceAll(std::string& data, std::string search, std::string replace)
 {
@@ -188,7 +193,7 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
-void Shader::checkCompileErrors(const char* name, GLuint shader, std::string type)
+void Shader::checkCompileErrors(const char* name, uint shader, std::string type)
 {
     GLint success;
     GLchar infoLog[1024];

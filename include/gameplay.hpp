@@ -8,9 +8,6 @@
 #include "player.hpp"
 #include "dynamics.hpp"
 #include "text.hpp"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 class Gameplay : public Input
 {
@@ -34,16 +31,20 @@ private:
     bool firstMouse = true;
     double lastX;
     double lastY;
+
+    int srcwidth;
+    int srcheight;
  
 public:
 
-    Gameplay(GameState& state, Input** input, AssetManager& man);
+    Gameplay(GameState& state, Input** input, AssetManager& man, int width, int height);
     ~Gameplay();
 
     virtual void mouseCallback(GLFWwindow*, double xpos, double ypos);
     virtual void mouseButtonCallback(GLFWwindow*, int, int, int);
     virtual void pollInput(GLFWwindow*, float); 
     virtual void characterCallback(GLFWwindow*, unsigned int); 
+    virtual void framebuffer_size_callback(GLFWwindow*, int, int);
     virtual void hardInit();
     void softInit();
     virtual void stop();
