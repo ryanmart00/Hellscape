@@ -18,6 +18,7 @@ On Linux:
 
 On Windows:
 - Install MSYS2 (for example): https://www.msys2.org/ Avoid installing MSYS2 in a folder with spaces in its name! (This will cause problems!)
+- Install git ```pacman -S git``` if you haven't already
 - In a MSYS2 window clone repo with --recurse-submodules to pull required libraries ```git clone --recurse-submodules https://github.com/ryanmart00/Hellscape.git```
 - You'll need the following packages: ```pacman -S cmake make gcc```
 - You will probably also need some graphics drivers, but this is system dependent. To search for drivers run ```pacman -Ss mesa``` and use pacman -S with the exact name of the one that matches your system
