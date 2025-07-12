@@ -3,6 +3,7 @@
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+
 Player::Player(AssetManager& manager, btTransform transform, 
     glm::vec3 camDirection, glm::vec3 camUp, GameState& state)
     : DynamicObject{nullptr, manager, new btCapsuleShape{PLAYER_RADIUS,PLAYER_HIEGHT},
@@ -17,16 +18,6 @@ Player::~Player()
         std::cerr << "Player Destructor" << std::endl;
     #endif
     delete shape_;
-}
-
-void Player::incrementPoints()
-{
-    points++; // ;)
-}
-
-int Player::getPoints()
-{
-    return points;
 }
 
 void Player::hardInit(Dynamics* world)

@@ -2,10 +2,15 @@
 #define PLAYER_HPP_INCLUDED
 
 #include "game_object.hpp"
-#include "inputs.hpp"
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include "glm/ext/quaternion_float.hpp"
+#include "inputs.hpp"
+#include "constants.hpp"
+#include "glm/ext/quaternion_float.hpp"
+#include "glm/gtc/quaternion.hpp"
+
+
 
 static glm::vec3 quatForward(glm::quat q) 
 {
@@ -37,16 +42,12 @@ public:
     const glm::vec3 getCameraPos();
 
     virtual void hardInit(Dynamics*);
-    virtual int getPoints();
 
     glm::quat cam_;
     bool grounded = false;
 protected:
     virtual void update(Dynamics*, float);
 
-private:
-    int points = 0; // temporary concept to debug shooting
-    void incrementPoints();
 };
 
 #endif

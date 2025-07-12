@@ -18,6 +18,7 @@ Gameplay::Gameplay(GameState& state, Input** inputs, AssetManager& man, int widt
 	//Generation of the Shader Program
 	//--------------------------------
     // directional light
+    /*
     dirLights.push_back(DirectionalLight
         {
             glm::vec3{-0.2f, -1.0f, -0.3f}, 
@@ -32,39 +33,40 @@ Gameplay::Gameplay(GameState& state, Input** inputs, AssetManager& man, int widt
             glm::vec3{0.4f, 0.4f, 0.4f},
             glm::vec3{0.2f, 0.2f, 0.2f}
         });
+        */
 
     // point lights
     pointLights.push_back(PointLight
         {
-            glm::vec3{0.7f, 30.2f, 2.0f},
+            glm::vec3{0.7f, 2.2f, 2.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.09f, 0.032f
+            1.0f, 0.009f, 0.00032f
         });
     pointLights.push_back(PointLight
         {
-            glm::vec3{-4.0f,  32.0f, -12.0f},
+            glm::vec3{-4.0f,  5.0f, -12.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.09f, 0.032f
+            1.0f, 0.009f, 0.00032f
         });
     pointLights.push_back(PointLight
         {
-            glm::vec3{30.0f,  25.0f, -3.0f},
+            glm::vec3{30.0f,  10.0f, -3.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.09f, 0.032f
+            1.f, 0.009f, 0.00032f
         });
     pointLights.push_back(PointLight
         {
-            glm::vec3{2.3f, 25.0f, -40.0f},
+            glm::vec3{2.3f, 5.0f, -40.0f},
             glm::vec3{0.05f, 0.05f, 0.05f},
             glm::vec3{0.8f, 0.8f, 0.8f},
             glm::vec3{1.0f, 1.0f, 1.0f},
-            1.0f, 0.09f, 0.032f
+            1.0f, 0.009f, 0.00032f
         });
 	
     shader_ = new Shader{(int)dirLights.size(), (int)pointLights.size(), 
@@ -73,18 +75,18 @@ Gameplay::Gameplay(GameState& state, Input** inputs, AssetManager& man, int widt
     {
         btTransform trans;
         trans.setIdentity();
-        trans.setOrigin(btVector3{10.0f,20.0f,10.0f});
+        trans.setOrigin(btVector3{00.0f,1.0f,0.0f});
         player_ = new Player{manager_, trans, glm::vec3{0,0,1}, UP, state};
         objects.push_back(player_);
     }
     btTransform trans;
     trans.setIdentity();
     // After we generate shaders load objects
-    trans.setOrigin(btVector3{10.0f,-100.0f,10.0f});
+    trans.setOrigin(btVector3{0.0f,00.0f,0.0f});
     
     floor = new StaticObject{nullptr, manager_, 
-        "assets/Models/playground.obj",
-        "assets/Models/playground.obj", trans};    
+        "assets/Models/World/CLOSED MAP V1 TEST2.obj",
+        "assets/Models/World/CLOSED MAP V1 TEST2.obj", trans};    
     
     objects.push_back(floor);
 
@@ -208,24 +210,24 @@ void Gameplay::pollInput(GLFWwindow* window, float dt)
 	}
 	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-        glm::vec3 v = 80*PLAYER_MASS * glm::cross(UP,quatRight(player_->cam_)) ;
+        glm::vec3 v = 160*PLAYER_MASS * glm::cross(UP,quatRight(player_->cam_)) ;
         player_->rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
     }
 	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 //        cam.position_ -= glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), cam.getRight()) * dt * 5.0f;
-        glm::vec3 v = -80*PLAYER_MASS * glm::cross(UP,quatRight(player_->cam_)) ;
+        glm::vec3 v = -160*PLAYER_MASS * glm::cross(UP,quatRight(player_->cam_)) ;
         player_->rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 	}
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-        glm::vec3 v = -80*PLAYER_MASS * quatRight(player_->cam_);
+        glm::vec3 v = -160*PLAYER_MASS * quatRight(player_->cam_);
         player_->rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 //        cam.position_ -= cam.getRight() * dt * 7.0f;
 	}
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-        glm::vec3 v = 80*PLAYER_MASS * quatRight(player_->cam_);
+        glm::vec3 v = 160*PLAYER_MASS * quatRight(player_->cam_);
         player_->rigidBody_->applyCentralForce(btVector3{v.x, v.y, v.z});
 //        cam.position_ += cam.getRight() * dt * 7.0f;
 	}
@@ -308,6 +310,7 @@ void Gameplay::update(float dt)
 
     //Clear
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);  
 
     // Compute shadows
     for(int i = 0; i < (int)dirLights.size(); i++)

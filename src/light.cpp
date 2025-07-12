@@ -75,7 +75,6 @@ void DirectionalLight::updateShader(Shader* shader, unsigned int num, glm::vec3 
 void DirectionalLight::renderShadows(std::vector<BaseObject*> renderables)
 {
     shadowShader_.use();
-
     glViewport(0,0,DIR_SHADOW_WIDTH, DIR_SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO_);
     glClear(GL_DEPTH_BUFFER_BIT);

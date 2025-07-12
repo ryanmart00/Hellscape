@@ -33,6 +33,7 @@ static void error_callback(int error, const char* description)
 
 
 
+
 //Initializes the GLFW Window and starts up GLAD
 static GLFWwindow* initWindow()
 {
@@ -78,22 +79,6 @@ static GLFWwindow* initWindow()
     #endif
     return window;
 }
-
-
-/*
-int main()
-{
-    GLFWwindow* window = initWindow();
-    while(!glfwWindowShouldClose(window))
-	{
-		//Handle events
-		glfwSwapBuffers(window);
-		glfwPollEvents();    
-	}
-	
-
-}
-*/
 
 Settings* settings;
 
@@ -222,7 +207,6 @@ void renderCrosshair(Shader& shader, glm::vec3 cameraPos)
     glActiveTexture(0);
 }
 */
-
 int main()
 {
     //model loader
