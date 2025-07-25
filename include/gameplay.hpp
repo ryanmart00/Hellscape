@@ -17,6 +17,7 @@ private:
     Shader* lampShader_;
     Text* text_;
     Player* player_;
+    Player* opp_;
     Dynamics* world;
     StaticObject* floor;
     std::vector<BaseObject*> objects;

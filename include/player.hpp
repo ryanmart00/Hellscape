@@ -27,6 +27,7 @@ static glm::vec3 quatUp(glm::quat q)
     return q * glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
+const float TELEPORT_THRESHOLD = 10.0f;
 
 class Player : public DynamicObject 
 {
@@ -45,6 +46,11 @@ public:
 
     glm::quat cam_;
     bool grounded = false;
+
+    void moveTo(glm::vec3 position, float dt);
+    void rotateTo(glm::quat orient);
+    void shoot();
+
 protected:
     virtual void update(Dynamics*, float);
 

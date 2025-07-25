@@ -1,4 +1,6 @@
 #include "player.hpp"
+#include "btTransform.h"
+#include "btVector3.h"
 #include "constants.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -91,5 +93,11 @@ void Player::update(Dynamics* world, float)
     });
     rigidBody_->applyTorque(-PLAYER_MASS*rigidBody_->getInterpolationAngularVelocity());
     
+}
+
+void Player::moveTo(glm::vec3 position, float dt)
+{
+    btVector3 v = btVector3{position.x, position.y, position.z};
+    rigidBody_->applyCentralForce(PLAYER_MASS*(v - rigidBody_->getCenterOfMassPosition())/dt/dt);
 }
 
