@@ -105,6 +105,10 @@ if(${DEBUG})
     target_compile_options(Hellscape PRIVATE -g)
 endif(${DEBUG})
 
+if(${WIN32})
+    target_compile_options(Hellscape PRIVATE /EHsc)
+endif(${WIN32})
+
 target_link_libraries(Hellscape 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 
     assimp 
