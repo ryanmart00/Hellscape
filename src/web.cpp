@@ -3,10 +3,10 @@
 #include <Winsock2.h>
 #else 
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #endif
 
 #include <mutex>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
