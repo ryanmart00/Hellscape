@@ -12,7 +12,7 @@ if(WIN32)
     message("WIN32")
     file(GLOB WINDOWSDLL "libs/WindowsDll/*")
     file(COPY ${WINDOWSDLL} DESTINATION ${CMAKE_BINARY_DIR})
-    set(CMAKE_CXX_FLAGS "-D_GNU_SOURCE -O1 -Wall")
+    set(CMAKE_CXX_FLAGS "-D_GNU_SOURCE -O1 -Wall -EHsc")
     set(CMAKE_C_FLAGS "-D_GNU_SOURCE -O1 -Wall")
     set(ENABLE_PRECOMPILED_HEADERS OFF)
     add_definitions(-DGCC_WINDRES)
@@ -104,10 +104,6 @@ if(${DEBUG})
     set_target_properties(Hellscape PROPERTIES COMPILE_DEFINITIONS "DEBUG")
     target_compile_options(Hellscape PRIVATE -g)
 endif(${DEBUG})
-
-if(${WIN32})
-    target_compile_options(Hellscape PRIVATE /EHsc)
-endif(${WIN32})
 
 target_link_libraries(Hellscape 
     BulletSoftBody BulletDynamics BulletCollision LinearMath 

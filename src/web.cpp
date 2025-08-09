@@ -82,6 +82,10 @@ Client init(char *IP, int port)
 }
 #endif
 
+UDP::UDP(char* IP, int port)
+{
+    
+}
 Message UDP::read()
 {
     const std::lock_guard<std::mutex> lock(last_guard);

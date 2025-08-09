@@ -87,7 +87,7 @@ public:
      */
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
 private:
-    void checkCompileErrors(const char* name, uint shader, std::string type);
+    void checkCompileErrors(const char* name, unsigned int shader, std::string type);
 
 };
 #endif

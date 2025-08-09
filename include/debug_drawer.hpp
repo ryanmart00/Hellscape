@@ -9,7 +9,7 @@
 
 class DebugDrawer : public btIDebugDraw {
 public:
-    uint VBO, VAO;
+    unsigned int VBO, VAO;
     DebugDrawer();
 
 	void SetMatrices(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
