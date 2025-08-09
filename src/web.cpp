@@ -1,5 +1,5 @@
 #include "web.hpp"
-#ifdef WIN32
+#ifdef _WIN32
 #include <Winsock2>
 #else 
 #include <arpa/inet.h>
