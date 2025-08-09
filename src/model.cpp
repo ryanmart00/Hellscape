@@ -8,7 +8,6 @@
 #include "constants.hpp"
 #include "glad/gl.h"
 
-
 Model::Model(std::string path)
 {
     Assimp::Importer import;
@@ -132,7 +131,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             std::cerr << "Mesh has too many bones!"  << std::endl;
         }
 #endif 
-        unsigned int vertexCounts[vertices.size()]; 
+        std::vector<unsigned int> vertexCounts(vertices.size()); 
         for(unsigned int i = 0; i < vertices.size(); i++)
         {
             vertexCounts[i] = 0;
