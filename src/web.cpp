@@ -88,6 +88,18 @@ Message UDP::read()
     return copy(last);
 }
 
+Message copy(Message& in)
+{
+    Message b;
+    b.host = in.host;
+    b.port = in.port;
+    for(int i=0; i < 100; i++)
+    {
+        b.buf[i] = in.buf[i];
+    }
+    return b;
+}
+
 void* UDP::poll()
 {
     while(1)
@@ -102,8 +114,6 @@ void* UDP::poll()
         {
             //A client sent a communication
         }
-
-
     }
 
 }
