@@ -1,8 +1,7 @@
 #include "inputs.hpp"
 
 #include <glad/gl.h>
-#include <unicode/unistr.h>
-#include <iostream>
+#include <iostream> 
 #include "constants.hpp"
 
 Settings::Settings(GameState& state, Input** inputs)

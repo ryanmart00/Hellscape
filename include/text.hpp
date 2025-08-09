@@ -17,8 +17,8 @@ public:
 private:
     FT_Library ft;
     FT_Face face;
-    uint tex;
-    uint textVAO = 0;
-    uint textVBO = 0;
+    unsigned int tex;
+    unsigned int textVAO = 0;
+    unsigned int textVBO = 0;
 };
 #endif
