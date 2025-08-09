@@ -1,5 +1,10 @@
 #include "web.hpp"
+#ifdef WIN32
+#include <Winsock2>
+#else 
 #include <arpa/inet.h>
+#endif
+
 #include <mutex>
 #include <netinet/in.h>
 #include <stdio.h>
